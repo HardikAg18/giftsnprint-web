@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Gallery — GiftsNPrint</title>
+<meta name="description" content="Browse our gallery of custom printing projects — T-shirts, mugs, corporate gifts, awards and more.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+.gallery-grid{columns:3;gap:16px}
+.gallery-item{break-inside:avoid;margin-bottom:16px;border-radius:var(--radius);overflow:hidden;position:relative;cursor:pointer;transition:.3s}
+.gallery-item:hover .gallery-overlay{opacity:1}
+.gallery-overlay{position:absolute;inset:0;background:rgba(124,58,237,0.7);display:flex;align-items:center;justify-content:center;opacity:0;transition:.3s}
+.gallery-overlay i{font-size:32px;color:#fff}
+.gallery-item img{width:100%;display:block;border-radius:var(--radius)}
+.filter-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px}
+.filter-tab{padding:8px 20px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:14px;font-weight:500;transition:.3s}
+.filter-tab.active,.filter-tab:hover{background:var(--primary);border-color:var(--primary);color:#fff}
+@media(max-width:768px){.gallery-grid{columns:2}}
+@media(max-width:480px){.gallery-grid{columns:1}}
+</style>
+</head>
+<body>
+<nav class="navbar" id="navbar"><div class="container"><a href="/" class="logo"><div><div class="logo-text">GiftsNPrint</div><div class="logo-sub">Custom Printing & Gifting</div></div></a><ul class="nav-links"><li><a href="/">Home</a></li><li><a href="/about.html">About</a></li><li><a href="/services.html">Services</a></li><li class="dropdown"><a href="/products.html">Products <i class="fas fa-chevron-down" style="font-size:10px"></i></a><div class="dropdown-menu"><a href="/category/custom-printing.html"><i class="fas fa-print"></i> Custom Printing</a><a href="/category/corporate-gifts.html"><i class="fas fa-briefcase"></i> Corporate Gifts</a><a href="/category/awards-trophies.html"><i class="fas fa-trophy"></i> Awards & Trophies</a><a href="/category/promotional-items.html"><i class="fas fa-bullhorn"></i> Promotional Items</a><a href="/category/advanced-printing.html"><i class="fas fa-layer-group"></i> Advanced Printing</a></div></li><li><a href="/gallery.html" class="active">Gallery</a></li><li><a href="/contact.html">Contact</a></li></ul><div class="nav-cta"><a href="/cart.html" class="btn btn-outline btn-sm nav-cart"><i class="fas fa-shopping-cart"></i><span class="cart-count">0</span></a><a href="/quote.html" class="btn btn-primary btn-sm">Get Quote</a></div><button class="hamburger" id="hamburger"><span></span><span></span><span></span></button></div></nav>
+<div class="mobile-menu" id="mobileMenu"><button class="mobile-close" id="mobileClose"><i class="fas fa-times"></i></button><a href="/">Home</a><a href="/products.html">Products</a><a href="/gallery.html">Gallery</a><a href="/contact.html">Contact</a><a href="/quote.html" class="btn btn-primary" style="margin-top:16px">Get Quote</a></div>
+
+<div class="page-header"><div class="container"><div class="breadcrumb"><a href="/">Home</a><i class="fas fa-chevron-right"></i><span>Gallery</span></div><h1 class="section-title animate-fadeUp">Our Work</h1><p class="animate-fadeUp delay-1" style="color:var(--text-muted);font-size:18px">A showcase of our finest custom printing projects</p></div></div>
+
+<section class="section">
+  <div class="container">
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-filter="all">All Projects</button>
+      <button class="filter-tab" data-filter="custom">Custom Printing</button>
+      <button class="filter-tab" data-filter="corporate">Corporate Gifts</button>
+      <button class="filter-tab" data-filter="awards">Awards</button>
+      <button class="filter-tab" data-filter="promotional">Promotional</button>
+    </div>
+    <div class="gallery-grid">
+      <div class="gallery-item animate-fadeUp"><img src="/images/category_custom.png" alt="Custom T-shirt Printing" loading="lazy"><div class="gallery-overlay"><i class="fas fa-expand"></i></div></div>
+      <div class="gallery-item animate-fadeUp delay-1"><img src="/images/category_promotional.png" alt="Corporate Gifts" loading="lazy"><div class="gallery-overlay"><i class="fas fa-expand"></i></div></div>
+      <div class="gallery-item animate-fadeUp delay-2"><img src="/images/category_awards.png" alt="Awards & Trophies" loading="lazy"><div class="gallery-overlay"><i class="fas fa-expand"></i></div></div>
+      <div class="gallery-item animate-fadeUp delay-3"><img src="/images/category_printing.png" alt="Promotional Items" loading="lazy"><div class="gallery-overlay"><i class="fas fa-expand"></i></div></div>
+      <div class="gallery-item animate-fadeUp delay-4"><img src="/images/category_advanced.png" alt="Advanced Printing" loading="lazy"><div class="gallery-overlay"><i class="fas fa-expand"></i></div></div>
+      <div class="gallery-item animate-fadeUp"><img src="/images/hero_banner.png" alt="Print Project" loading="lazy"><div class="gallery-overlay"><i class="fas fa-expand"></i></div></div>
+      <div class="gallery-item animate-fadeUp delay-1"><img src="/images/category_custom.png" alt="Custom Mugs" loading="lazy"><div class="gallery-overlay"><i class="fas fa-expand"></i></div></div>
+      <div class="gallery-item animate-fadeUp delay-2"><img src="/images/category_awards.png" alt="Crystal Awards" loading="lazy"><div class="gallery-overlay"><i class="fas fa-expand"></i></div></div>
+      <div class="gallery-item animate-fadeUp delay-3"><img src="/images/category_promotional.png" alt="Brand Merchandise" loading="lazy"><div class="gallery-overlay"><i class="fas fa-expand"></i></div></div>
+    </div>
+    <div class="text-center" style="margin-top:48px">
+      <p style="color:var(--text-muted);margin-bottom:20px">Want to see more or discuss a project?</p>
+      <a href="/quote.html" class="btn btn-primary btn-lg"><i class="fas fa-file-invoice"></i> Get Free Quote</a>
+    </div>
+  </div>
+</section>
+
+<footer class="footer"><div class="container"><div class="footer-grid"><div class="footer-brand"><div class="logo-text">GiftsNPrint</div><p class="footer-desc">India's premium custom printing & corporate gifting studio.</p><div class="social-links"><a href="#" class="social-link"><i class="fab fa-instagram"></i></a><a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a></div></div><div><div class="footer-heading">Quick Links</div><ul class="footer-links"><li><a href="/"><i class="fas fa-chevron-right"></i> Home</a></li><li><a href="/products.html"><i class="fas fa-chevron-right"></i> Products</a></li><li><a href="/gallery.html"><i class="fas fa-chevron-right"></i> Gallery</a></li></ul></div><div><div class="footer-heading">Contact</div><ul class="footer-links"><li><a href="tel:+919876543210"><i class="fas fa-phone"></i> +91 98765 43210</a></li><li><a href="mailto:info@giftsnprint.com"><i class="fas fa-envelope"></i> info@giftsnprint.com</a></li></ul></div></div><div class="footer-bottom"><p>© 2025 GiftsNPrint. All rights reserved.</p></div></div></div></footer>
+<a href="#" onclick="openWhatsApp();return false;" class="whatsapp-float"><div class="whatsapp-tooltip">Chat with us!</div><i class="fab fa-whatsapp"></i></a>
+<button class="chatbot-toggle" id="chatbotToggle"><i class="fas fa-comment-dots"></i></button>
+<div class="chatbot-box" id="chatbotBox"><div class="chatbot-header"><div><h4>PrintBot</h4><p>GiftsNPrint Assistant</p></div><button class="chatbot-close" id="chatbotClose"><i class="fas fa-times"></i></button></div><div class="chatbot-messages" id="chatMessages"></div><form class="chatbot-input" id="chatForm"><input type="text" id="chatInput" placeholder="Ask me anything..."><button type="submit"><i class="fas fa-paper-plane"></i></button></form></div>
+<script src="/js/main.js"></script><script src="/js/chatbot.js"></script>
+<script>
+document.querySelectorAll('.filter-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+  });
+});
+</script>
+</body></html>

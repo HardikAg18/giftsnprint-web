@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Checkout — GiftsNPrint</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="/css/style.css">
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+<nav class="navbar scrolled" id="navbar"><div class="container"><a href="/" class="logo"><div><div class="logo-text">GiftsNPrint</div><div class="logo-sub">Secure Checkout</div></div></a><div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px"><i class="fas fa-lock" style="color:#10B981"></i> 100% Secure Checkout</div></div></nav>
+
+<section style="padding:100px 0 60px">
+  <div class="container">
+    <h1 class="section-title animate-fadeUp" style="text-align:left;margin-bottom:32px">Checkout</h1>
+    <div style="display:grid;grid-template-columns:1fr 380px;gap:32px;align-items:start">
+      <!-- Checkout Form -->
+      <div class="animate-fadeUp">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px;margin-bottom:24px">
+          <h2 style="font-size:18px;font-weight:700;margin-bottom:20px"><i class="fas fa-user" style="color:var(--primary-light);margin-right:8px"></i> Billing Information</h2>
+          <form id="checkoutForm">
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Full Name *</label><input type="text" name="name" id="checkoutName" class="form-control" placeholder="Your full name" required></div>
+              <div class="form-group"><label class="form-label">Phone *</label><input type="tel" name="phone" id="checkoutPhone" class="form-control" placeholder="+91 98765 43210" required></div>
+            </div>
+            <div class="form-group"><label class="form-label">Email Address *</label><input type="email" name="email" id="checkoutEmail" class="form-control" placeholder="you@email.com" required></div>
+            <div class="form-group"><label class="form-label">Delivery Address *</label><textarea name="address" id="checkoutAddress" class="form-control" rows="3" placeholder="Full delivery address with pincode" required></textarea></div>
+            <div class="form-group"><label class="form-label">Customization / Order Notes</label><textarea name="notes" id="checkoutNotes" class="form-control" rows="2" placeholder="Design details, special instructions..."></textarea></div>
+            <input type="hidden" id="hiddenTotal" value="0">
+            <button type="submit" id="payBtn" class="btn btn-primary btn-lg" style="width:100%;margin-top:8px"><i class="fas fa-lock"></i> Pay Securely with Razorpay</button>
+          </form>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)">
+          <span style="font-size:13px;color:var(--text-muted)">Secured by</span>
+          <strong style="color:var(--text)">Razorpay</strong>
+          <span style="font-size:12px;color:var(--text-muted)">|</span>
+          <i class="fas fa-credit-card" style="color:var(--text-muted)"></i>
+          <i class="fab fa-google-pay" style="color:var(--text-muted);font-size:18px"></i>
+          <span style="font-size:12px;color:var(--text-muted)">UPI, Cards, Net Banking</span>
+        </div>
+      </div>
+      <!-- Order Summary -->
+      <div id="orderSummary" class="animate-fadeUp delay-2" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;position:sticky;top:100px">
+        <h3 style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;margin-bottom:16px">Order Summary</h3>
+        <div class="loader"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="/js/main.js"></script>
+<script src="/js/payment.js"></script>
+</body></html>

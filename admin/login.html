@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Admin Login — GiftsNPrint</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="/admin/css/admin.css">
+<style>body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}</style>
+</head>
+<body>
+<div style="width:100%;max-width:420px;padding:20px">
+  <div style="text-align:center;margin-bottom:32px">
+    <div style="font-family:'Outfit',sans-serif;font-size:28px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">GiftsNPrint</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-top:4px">Admin Dashboard</div>
+  </div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px">
+    <h1 style="font-size:22px;font-weight:700;margin-bottom:4px">Welcome Back</h1>
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:28px">Sign in to manage your store</p>
+    <div id="loginAlert"></div>
+    <form id="loginForm">
+      <div class="form-group"><label class="form-label">Username / Email</label><input type="text" id="loginUser" class="form-control" placeholder="admin" required autocomplete="username"></div>
+      <div class="form-group"><label class="form-label">Password</label><div style="position:relative"><input type="password" id="loginPass" class="form-control" placeholder="••••••••" required autocomplete="current-password" style="padding-right:44px"><button type="button" id="togglePass" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:15px"><i class="fas fa-eye"></i></button></div></div>
+      <button type="submit" id="loginBtn" class="btn btn-primary" style="width:100%;padding:12px;font-size:15px;margin-top:8px;justify-content:center"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+    </form>
+    <p style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:20px"><i class="fas fa-lock"></i> Secure admin access only</p>
+  </div>
+</div>
+<script>
+// If already logged in, redirect
+if (localStorage.getItem('gnp_admin_token')) window.location.href = '/admin/index.html';
+
+document.getElementById('togglePass')?.addEventListener('click', () => {
+  const inp = document.getElementById('loginPass');
+  const icon = document.querySelector('#togglePass i');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  icon.className = inp.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+});
+
+document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('loginBtn');
+  const alert = document.getElementById('loginAlert');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: document.getElementById('loginUser').value, password: document.getElementById('loginPass').value })
+    });
+    const data = await res.json();
+    if (data.success && data.token) {
+      localStorage.setItem('gnp_admin_token', data.token);
+      window.location.href = '/admin/index.html';
+    } else {
+      alert.innerHTML = '<div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> ' + (data.message || 'Invalid credentials.') + '</div>';
+    }
+  } catch (err) {
+    alert.innerHTML = '<div class="alert alert-error"><i class="fas fa-wifi"></i> Connection error. Please try again.</div>';
+  }
+  btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+});
+</script>
+</body></html>

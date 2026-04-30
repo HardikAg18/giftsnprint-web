@@ -1,0 +1,61 @@
+﻿<!DOCTYPE html><html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Settings - GiftsNPrint Admin</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="/admin/css/admin.css"></head>
+<body>
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header"><div class="sidebar-logo">GiftsNPrint</div><div class="sidebar-sub">Admin Dashboard</div></div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Main</div>
+    <a href="/admin/index.html" class="nav-item" data-page="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="/admin/orders.html" class="nav-item" data-page="orders.html"><i class="fas fa-shopping-bag"></i> Orders <span class="nav-badge" id="pendingBadge">0</span></a>
+    <a href="/admin/products.html" class="nav-item" data-page="products.html"><i class="fas fa-box-open"></i> Products</a>
+    <div class="nav-group-label">Customer</div>
+    <a href="/admin/customers.html" class="nav-item" data-page="customers.html"><i class="fas fa-users"></i> Customers</a>
+    <a href="/admin/enquiries.html" class="nav-item" data-page="enquiries.html"><i class="fas fa-envelope"></i> Enquiries</a>
+    <a href="/admin/reviews.html" class="nav-item" data-page="reviews.html"><i class="fas fa-star"></i> Reviews</a>
+    <div class="nav-group-label">Settings</div>
+    <a href="/admin/settings.html" class="nav-item" data-page="settings.html"><i class="fas fa-cog"></i> Settings</a>
+    <a href="/" class="nav-item" target="_blank"><i class="fas fa-external-link-alt"></i> View Website</a>
+  </nav>
+  <div class="sidebar-footer"><div class="sidebar-user"><div class="sidebar-avatar">A</div><div><div class="sidebar-username">Admin</div><div class="sidebar-role">Super Admin</div></div><button onclick="adminLogout()" style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px" title="Logout"><i class="fas fa-sign-out-alt"></i></button></div></div>
+</div>
+<div class="admin-main">
+<div class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="hamburger-admin" id="hamburgerAdmin"><i class="fas fa-bars"></i></button><div class="topbar-title">Settings</div></div></div>
+<div class="admin-content">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+    <div class="admin-card">
+      <h3 style="font-weight:700;margin-bottom:20px;font-size:16px"><i class="fas fa-store" style="color:var(--primary-light);margin-right:8px"></i> Business Info</h3>
+      <div class="form-group"><label class="form-label">Business Name</label><input class="form-control" value="GiftsNPrint"></div>
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-control" value="+91 98765 43210"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-control" value="info@giftsnprint.com"></div>
+      <div class="form-group"><label class="form-label">WhatsApp Number</label><input class="form-control" value="919876543210"></div>
+      <div class="form-group"><label class="form-label">Address</label><textarea class="form-control" rows="3">123 Print Lane, Andheri West, Mumbai - 400053</textarea></div>
+      <button class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+    </div>
+    <div>
+      <div class="admin-card" style="margin-bottom:20px">
+        <h3 style="font-weight:700;margin-bottom:20px;font-size:16px"><i class="fas fa-key" style="color:var(--accent);margin-right:8px"></i> Change Password</h3>
+        <div class="form-group"><label class="form-label">Current Password</label><input type="password" class="form-control" placeholder="••••••••"></div>
+        <div class="form-group"><label class="form-label">New Password</label><input type="password" class="form-control" placeholder="••••••••"></div>
+        <div class="form-group"><label class="form-label">Confirm Password</label><input type="password" class="form-control" placeholder="••••••••"></div>
+        <button class="btn btn-primary"><i class="fas fa-lock"></i> Update Password</button>
+      </div>
+      <div class="admin-card">
+        <h3 style="font-weight:700;margin-bottom:16px;font-size:16px"><i class="fas fa-info-circle" style="color:var(--green);margin-right:8px"></i> System Info</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--text-muted)">
+          <div>Version: <strong style="color:var(--text)">1.0.0</strong></div>
+          <div>Node.js: <strong style="color:var(--text)">Backend Active</strong></div>
+          <div>Database: <strong style="color:var(--green)">Connected</strong></div>
+          <div>Razorpay: <strong style="color:var(--text)">Configured</strong></div>
+        </div>
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+          <a href="/" target="_blank" class="btn btn-outline btn-sm"><i class="fas fa-external-link-alt"></i> View Website</a>
+          <button class="btn btn-danger btn-sm" style="margin-left:8px" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div>
+<script src="/admin/js/admin.js"></script>
+</body></html>

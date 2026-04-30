@@ -1,0 +1,32 @@
+﻿<!DOCTYPE html><html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Reviews - GiftsNPrint Admin</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="/admin/css/admin.css"></head>
+<body>
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header"><div class="sidebar-logo">GiftsNPrint</div><div class="sidebar-sub">Admin Dashboard</div></div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Main</div>
+    <a href="/admin/index.html" class="nav-item" data-page="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="/admin/orders.html" class="nav-item" data-page="orders.html"><i class="fas fa-shopping-bag"></i> Orders <span class="nav-badge" id="pendingBadge">0</span></a>
+    <a href="/admin/products.html" class="nav-item" data-page="products.html"><i class="fas fa-box-open"></i> Products</a>
+    <div class="nav-group-label">Customer</div>
+    <a href="/admin/customers.html" class="nav-item" data-page="customers.html"><i class="fas fa-users"></i> Customers</a>
+    <a href="/admin/enquiries.html" class="nav-item" data-page="enquiries.html"><i class="fas fa-envelope"></i> Enquiries</a>
+    <a href="/admin/reviews.html" class="nav-item" data-page="reviews.html"><i class="fas fa-star"></i> Reviews</a>
+    <div class="nav-group-label">Settings</div>
+    <a href="/admin/settings.html" class="nav-item" data-page="settings.html"><i class="fas fa-cog"></i> Settings</a>
+    <a href="/" class="nav-item" target="_blank"><i class="fas fa-external-link-alt"></i> View Website</a>
+  </nav>
+  <div class="sidebar-footer"><div class="sidebar-user"><div class="sidebar-avatar">A</div><div><div class="sidebar-username">Admin</div><div class="sidebar-role">Super Admin</div></div><button onclick="adminLogout()" style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px" title="Logout"><i class="fas fa-sign-out-alt"></i></button></div></div>
+</div>
+<div class="admin-main">
+<div class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="hamburger-admin" id="hamburgerAdmin"><i class="fas fa-bars"></i></button><div class="topbar-title">Reviews</div></div><div class="topbar-actions"><div class="topbar-btn" onclick="loadReviews()"><i class="fas fa-sync"></i></div></div></div>
+<div class="admin-content">
+  <div class="admin-table-wrap">
+    <div class="admin-table-header"><div class="admin-table-title">Customer Reviews</div></div>
+    <table class="admin-table"><thead><tr><th>Reviewer</th><th>Product</th><th>Rating</th><th>Comment</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody id="reviewsTbody"><tr><td colspan="7" style="text-align:center;padding:40px"><div class="loader"><div class="spinner"></div></div></td></tr></tbody></table>
+  </div>
+</div></div>
+<script src="/admin/js/admin.js"></script><script>document.addEventListener('DOMContentLoaded', loadReviews);</script>
+</body></html>

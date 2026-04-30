@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Get a Quote — GiftsNPrint</title>
+<meta name="description" content="Request a free custom printing quote from GiftsNPrint. Fill in your requirements and we'll respond within 2 hours.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav class="navbar" id="navbar"><div class="container"><a href="/" class="logo"><div><div class="logo-text">GiftsNPrint</div><div class="logo-sub">Custom Printing & Gifting</div></div></a><ul class="nav-links"><li><a href="/">Home</a></li><li><a href="/about.html">About</a></li><li><a href="/services.html">Services</a></li><li class="dropdown"><a href="/products.html">Products <i class="fas fa-chevron-down" style="font-size:10px"></i></a><div class="dropdown-menu"><a href="/category/custom-printing.html"><i class="fas fa-print"></i> Custom Printing</a><a href="/category/corporate-gifts.html"><i class="fas fa-briefcase"></i> Corporate Gifts</a><a href="/category/awards-trophies.html"><i class="fas fa-trophy"></i> Awards & Trophies</a><a href="/category/promotional-items.html"><i class="fas fa-bullhorn"></i> Promotional Items</a><a href="/category/advanced-printing.html"><i class="fas fa-layer-group"></i> Advanced Printing</a></div></li><li><a href="/gallery.html">Gallery</a></li><li><a href="/contact.html">Contact</a></li></ul><div class="nav-cta"><a href="/cart.html" class="btn btn-outline btn-sm nav-cart"><i class="fas fa-shopping-cart"></i><span class="cart-count">0</span></a><a href="/quote.html" class="btn btn-primary btn-sm">Get Quote</a></div><button class="hamburger" id="hamburger"><span></span><span></span><span></span></button></div></nav>
+<div class="mobile-menu" id="mobileMenu"><button class="mobile-close" id="mobileClose"><i class="fas fa-times"></i></button><a href="/">Home</a><a href="/products.html">Products</a><a href="/contact.html">Contact</a><a href="/quote.html" class="btn btn-primary" style="margin-top:16px">Get Quote</a></div>
+
+<div class="page-header"><div class="container"><div class="breadcrumb"><a href="/">Home</a><i class="fas fa-chevron-right"></i><span>Get Quote</span></div><h1 class="section-title animate-fadeUp">Request a Free Quote</h1><p class="animate-fadeUp delay-1" style="color:var(--text-muted);font-size:18px">Fill in your requirements and we'll get back to you within 2 hours!</p></div></div>
+
+<section class="section">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:48px;align-items:start">
+      <!-- Form -->
+      <div class="animate-fadeUp">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:36px">
+          <div id="quoteAlert"></div>
+          <form id="quoteForm">
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Full Name *</label><input type="text" name="name" id="quoteName" class="form-control" placeholder="Your name" required></div>
+              <div class="form-group"><label class="form-label">Phone *</label><input type="tel" name="phone" id="quotePhone" class="form-control" placeholder="+91 98765 43210" required></div>
+            </div>
+            <div class="form-group"><label class="form-label">Email Address *</label><input type="email" name="email" id="quoteEmail" class="form-control" placeholder="you@company.com" required></div>
+            <div class="form-group"><label class="form-label">Company / Brand Name</label><input type="text" name="company" id="quoteCompany" class="form-control" placeholder="Your company name"></div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Product Category *</label><select name="category" id="quoteCategory" class="form-control" required><option value="">Select category</option><option>Custom Printing</option><option>Corporate Gifts</option><option>Awards & Trophies</option><option>Promotional Items</option><option>Advanced Printing</option><option>Other</option></select></div>
+              <div class="form-group"><label class="form-label">Specific Product</label><input type="text" id="quoteProduct" name="product" class="form-control" placeholder="e.g. Custom T-shirts"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Quantity Required *</label><input type="number" name="quantity" id="quoteQty" class="form-control" placeholder="e.g. 100" min="1" required></div>
+              <div class="form-group"><label class="form-label">Budget (₹)</label><input type="text" name="budget" id="quoteBudget" class="form-control" placeholder="e.g. ₹50,000"></div>
+            </div>
+            <div class="form-group"><label class="form-label">Design / Requirement Details *</label><textarea name="message" id="quoteMessage" class="form-control" rows="5" placeholder="Describe your design requirements, colors, customization details, deadline, etc." required></textarea></div>
+            <div class="form-group"><label class="form-label">Deadline</label><input type="date" name="deadline" id="quoteDeadline" class="form-control"></div>
+            <button type="submit" id="quoteBtn" class="btn btn-primary btn-lg" style="width:100%"><i class="fas fa-paper-plane"></i> Submit Quote Request</button>
+          </form>
+        </div>
+      </div>
+      <!-- Sidebar -->
+      <div style="display:flex;flex-direction:column;gap:20px" class="animate-fadeUp delay-2">
+        <div style="background:var(--grad);border-radius:var(--radius);padding:28px;color:#fff">
+          <h3 style="font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;margin-bottom:12px"><i class="fas fa-bolt"></i> Quick Response</h3>
+          <p style="opacity:.9;font-size:15px;line-height:1.7">Our team reviews every quote request personally and responds within <strong>2 hours</strong> during business hours.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-rupee-sign"></i></div>
+          <div class="feature-title">Best Price Guarantee</div>
+          <div class="feature-desc">We match or beat any competitor's quote on identical products and quality.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-paint-brush"></i></div>
+          <div class="feature-title">Free Design Help</div>
+          <div class="feature-desc">Our expert designers will help finalize your artwork at no extra cost.</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
+          <h4 style="font-weight:700;margin-bottom:16px">Prefer to talk directly?</h4>
+          <button onclick="openWhatsApp('Hello! I want to discuss a custom printing quote.')" class="btn btn-accent" style="width:100%;margin-bottom:10px"><i class="fab fa-whatsapp"></i> WhatsApp Us</button>
+          <a href="tel:+919876543210" class="btn btn-outline" style="width:100%;text-align:center"><i class="fas fa-phone"></i> Call Us</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer"><div class="container"><div class="footer-grid"><div class="footer-brand"><div class="logo-text">GiftsNPrint</div><p class="footer-desc">India's premium custom printing & corporate gifting studio.</p></div><div><div class="footer-heading">Quick Links</div><ul class="footer-links"><li><a href="/"><i class="fas fa-chevron-right"></i> Home</a></li><li><a href="/products.html"><i class="fas fa-chevron-right"></i> Products</a></li><li><a href="/contact.html"><i class="fas fa-chevron-right"></i> Contact</a></li></ul></div><div><div class="footer-heading">Contact</div><ul class="footer-links"><li><a href="tel:+919876543210"><i class="fas fa-phone"></i> +91 98765 43210</a></li><li><a href="mailto:info@giftsnprint.com"><i class="fas fa-envelope"></i> info@giftsnprint.com</a></li></ul></div></div><div class="footer-bottom"><p>© 2025 GiftsNPrint. All rights reserved.</p></div></div></div></footer>
+<a href="#" onclick="openWhatsApp();return false;" class="whatsapp-float"><div class="whatsapp-tooltip">Chat with us!</div><i class="fab fa-whatsapp"></i></a>
+<button class="chatbot-toggle" id="chatbotToggle"><i class="fas fa-comment-dots"></i></button>
+<div class="chatbot-box" id="chatbotBox"><div class="chatbot-header"><div><h4>PrintBot</h4><p>GiftsNPrint Assistant</p></div><button class="chatbot-close" id="chatbotClose"><i class="fas fa-times"></i></button></div><div class="chatbot-messages" id="chatMessages"></div><form class="chatbot-input" id="chatForm"><input type="text" id="chatInput" placeholder="Ask me anything..."><button type="submit"><i class="fas fa-paper-plane"></i></button></form></div>
+<script src="/js/main.js"></script><script src="/js/chatbot.js"></script>
+<script>
+// Pre-fill from URL params
+const params = new URLSearchParams(location.search);
+if (params.get('product')) document.getElementById('quoteProduct').value = params.get('product');
+if (params.get('qty')) document.getElementById('quoteQty').value = params.get('qty');
+
+document.getElementById('quoteForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('quoteBtn');
+  const alert = document.getElementById('quoteAlert');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+  try {
+    const payload = {
+      name: document.getElementById('quoteName').value,
+      email: document.getElementById('quoteEmail').value,
+      phone: document.getElementById('quotePhone').value,
+      subject: `Quote Request: ${document.getElementById('quoteCategory').value} - ${document.getElementById('quoteProduct').value}`,
+      message: `Category: ${document.getElementById('quoteCategory').value}\nProduct: ${document.getElementById('quoteProduct').value}\nQty: ${document.getElementById('quoteQty').value}\nBudget: ${document.getElementById('quoteBudget').value}\nDeadline: ${document.getElementById('quoteDeadline').value}\nDetails: ${document.getElementById('quoteMessage').value}`,
+      inquiry_type: 'quote'
+    };
+    const res = await fetch('/api/contact', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const data = await res.json();
+    if (data.success) { alert.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> Quote request submitted! We\'ll send you pricing within 2 hours.</div>'; e.target.reset(); }
+    else { alert.innerHTML = '<div class="alert alert-error">' + (data.message || 'Failed to submit. Please try WhatsApp.') + '</div>'; }
+  } catch(err) { alert.innerHTML = '<div class="alert alert-error">Connection error. Please try WhatsApp instead.</div>'; }
+  btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Quote Request';
+});
+</script>
+</body></html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Shopping Cart — GiftsNPrint</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav class="navbar" id="navbar"><div class="container"><a href="/" class="logo"><div><div class="logo-text">GiftsNPrint</div><div class="logo-sub">Custom Printing & Gifting</div></div></a><ul class="nav-links"><li><a href="/">Home</a></li><li><a href="/products.html">Products</a></li><li><a href="/quote.html">Get Quote</a></li></ul><div class="nav-cta"><a href="/cart.html" class="btn btn-outline btn-sm nav-cart active"><i class="fas fa-shopping-cart"></i><span class="cart-count">0</span></a><a href="/quote.html" class="btn btn-primary btn-sm">Get Quote</a></div><button class="hamburger" id="hamburger"><span></span><span></span><span></span></button></div></nav>
+<div class="mobile-menu" id="mobileMenu"><button class="mobile-close" id="mobileClose"><i class="fas fa-times"></i></button><a href="/">Home</a><a href="/products.html">Products</a><a href="/quote.html">Get Quote</a></div>
+
+<div class="page-header"><div class="container"><div class="breadcrumb"><a href="/">Home</a><i class="fas fa-chevron-right"></i><span>Shopping Cart</span></div><h1 class="section-title animate-fadeUp">Your Cart</h1></div></div>
+
+<section class="section">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 360px;gap:32px;align-items:start">
+      <div>
+        <!-- Empty State -->
+        <div id="cartEmpty" style="text-align:center;padding:80px 20px;display:none">
+          <i class="fas fa-shopping-cart" style="font-size:64px;color:var(--border);margin-bottom:24px;display:block"></i>
+          <h3 style="font-size:22px;font-weight:700;margin-bottom:12px">Your cart is empty</h3>
+          <p style="color:var(--text-muted);margin-bottom:24px">Add some products to get started!</p>
+          <a href="/products.html" class="btn btn-primary btn-lg"><i class="fas fa-box-open"></i> Browse Products</a>
+        </div>
+        <!-- Cart Items -->
+        <div id="cartItems"></div>
+        <!-- Actions -->
+        <div id="cartActions" style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap">
+          <a href="/products.html" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Continue Shopping</a>
+          <button onclick="clearCart()" class="btn btn-outline" style="color:#EF4444;border-color:#EF4444"><i class="fas fa-trash"></i> Clear Cart</button>
+        </div>
+      </div>
+      <!-- Summary -->
+      <div id="cartSummary" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;position:sticky;top:100px">
+        <h3 style="font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;margin-bottom:20px">Order Summary</h3>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:15px"><span style="color:var(--text-muted)">Subtotal</span><span id="subtotalAmt">₹0</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:15px"><span style="color:var(--text-muted)">GST (18%)</span><span id="gstAmt">₹0</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:15px"><span style="color:var(--text-muted)">Shipping</span><span id="shippingAmt">₹99</span></div>
+        <div style="border-top:1px solid var(--border);margin:16px 0;padding-top:16px;display:flex;justify-content:space-between;font-size:20px;font-weight:700"><span>Total</span><span id="totalAmt" style="color:var(--accent)">₹0</span></div>
+        <input type="hidden" id="checkoutTotal" value="0">
+        <button id="proceedCheckout" class="btn btn-primary btn-lg" style="width:100%"><i class="fas fa-lock"></i> Proceed to Checkout</button>
+        <button onclick="openWhatsApp('Hello! I want to place a bulk order. Please help me.')" class="btn btn-accent" style="width:100%;margin-top:10px"><i class="fab fa-whatsapp"></i> Order via WhatsApp</button>
+        <p style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:12px"><i class="fas fa-shield-alt"></i> 100% Secure Checkout</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer"><div class="container"><div class="footer-grid"><div class="footer-brand"><div class="logo-text">GiftsNPrint</div><p class="footer-desc">India's premium custom printing & corporate gifting studio.</p></div><div><div class="footer-heading">Quick Links</div><ul class="footer-links"><li><a href="/products.html"><i class="fas fa-chevron-right"></i> Products</a></li><li><a href="/quote.html"><i class="fas fa-chevron-right"></i> Get Quote</a></li></ul></div></div><div class="footer-bottom"><p>© 2025 GiftsNPrint. All rights reserved.</p></div></div></div></footer>
+<a href="#" onclick="openWhatsApp();return false;" class="whatsapp-float"><div class="whatsapp-tooltip">Chat with us!</div><i class="fab fa-whatsapp"></i></a>
+<script src="/js/main.js"></script><script src="/js/cart.js"></script>
+</body></html>

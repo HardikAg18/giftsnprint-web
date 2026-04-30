@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html><html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Products - GiftsNPrint Admin</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="/admin/css/admin.css"></head>
+<body>
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header"><div class="sidebar-logo">GiftsNPrint</div><div class="sidebar-sub">Admin Dashboard</div></div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Main</div>
+    <a href="/admin/index.html" class="nav-item" data-page="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="/admin/orders.html" class="nav-item" data-page="orders.html"><i class="fas fa-shopping-bag"></i> Orders <span class="nav-badge" id="pendingBadge">0</span></a>
+    <a href="/admin/products.html" class="nav-item" data-page="products.html"><i class="fas fa-box-open"></i> Products</a>
+    <div class="nav-group-label">Customer</div>
+    <a href="/admin/customers.html" class="nav-item" data-page="customers.html"><i class="fas fa-users"></i> Customers</a>
+    <a href="/admin/enquiries.html" class="nav-item" data-page="enquiries.html"><i class="fas fa-envelope"></i> Enquiries</a>
+    <a href="/admin/reviews.html" class="nav-item" data-page="reviews.html"><i class="fas fa-star"></i> Reviews</a>
+    <div class="nav-group-label">Settings</div>
+    <a href="/admin/settings.html" class="nav-item" data-page="settings.html"><i class="fas fa-cog"></i> Settings</a>
+    <a href="/" class="nav-item" target="_blank"><i class="fas fa-external-link-alt"></i> View Website</a>
+  </nav>
+  <div class="sidebar-footer"><div class="sidebar-user"><div class="sidebar-avatar">A</div><div><div class="sidebar-username">Admin</div><div class="sidebar-role">Super Admin</div></div><button onclick="adminLogout()" style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px" title="Logout"><i class="fas fa-sign-out-alt"></i></button></div></div>
+</div>
+<div class="admin-main">
+<div class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="hamburger-admin" id="hamburgerAdmin"><i class="fas fa-bars"></i></button><div class="topbar-title">Products</div></div><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="openModal('addProductModal')"><i class="fas fa-plus"></i> Add Product</button></div></div>
+<div class="admin-content">
+  <div class="admin-table-wrap">
+    <div class="admin-table-header"><div class="admin-table-title">All Products</div><div class="search-box" style="width:240px"><i class="fas fa-search"></i><input type="text" id="productSearch" class="form-control" placeholder="Search products..."></div></div>
+    <table class="admin-table"><thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Orders</th><th>Status</th><th>Action</th></tr></thead><tbody id="adminProductsTbody"><tr><td colspan="7" style="text-align:center;padding:40px"><div class="loader"><div class="spinner"></div></div></td></tr></tbody></table>
+  </div>
+</div></div>
+
+<!-- Add Product Modal -->
+<div class="modal-overlay" id="addProductModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Add New Product</h3><button class="modal-close" onclick="closeModal('addProductModal')"><i class="fas fa-times"></i></button></div>
+    <form id="addProductForm" enctype="multipart/form-data"><div class="modal-body">
+      <div id="addProductAlert"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Product Name *</label><input type="text" name="name" class="form-control" required placeholder="e.g. Custom T-Shirt"></div>
+        <div class="form-group"><label class="form-label">Category *</label><select name="category_id" class="form-control" required><option value="">Select</option><option value="1">Custom Printing</option><option value="2">Corporate Gifts</option><option value="3">Awards & Trophies</option><option value="4">Promotional Items</option><option value="5">Advanced Printing</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Short Description</label><input type="text" name="short_description" class="form-control" placeholder="One line summary"></div>
+      <div class="form-group"><label class="form-label">Full Description</label><textarea name="description" class="form-control" rows="3"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Base Price (₹) *</label><input type="number" name="base_price" class="form-control" required min="0" step="0.01"></div>
+        <div class="form-group"><label class="form-label">Min Order Qty</label><input type="number" name="min_order_qty" class="form-control" value="25" min="1"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Tags (comma separated)</label><input type="text" name="tags" class="form-control" placeholder="t-shirt, printing, custom"></div>
+      <div class="form-group"><label class="form-label">Product Image</label><input type="file" name="image" class="form-control" accept="image/*"></div>
+      <div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" name="is_featured" value="1"> <span style="font-size:14px">Mark as Featured</span></label></div>
+    </div><div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('addProductModal')">Cancel</button><button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Add Product</button></div></form>
+  </div>
+</div>
+
+<script src="/admin/js/admin.js"></script><script>
+document.addEventListener('DOMContentLoaded', () => {
+  loadAdminProducts();
+  let t;
+  document.getElementById('productSearch')?.addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => loadAdminProducts({ search: e.target.value }), 400); });
+});
+
+document.getElementById('addProductForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const fd = new FormData(form);
+  const alert = document.getElementById('addProductAlert');
+  try {
+    const res = await fetch('/api/products', { method:'POST', headers:{ 'Authorization': 'Bearer ' + localStorage.getItem('gnp_admin_token') }, body: fd });
+    const data = await res.json();
+    if (data.success) { showAdminToast('Product added!'); closeModal('addProductModal'); form.reset(); loadAdminProducts(); }
+    else alert.innerHTML = '<div class="alert alert-error">' + (data.message||'Failed to add product.') + '</div>';
+  } catch(err) { alert.innerHTML = '<div class="alert alert-error">Server error.</div>'; }
+});
+</script>
+</body></html>
