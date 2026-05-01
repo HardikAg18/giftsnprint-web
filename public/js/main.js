@@ -1,6 +1,6 @@
 // GiftsNPrint - main.js
 const API = '/api';
-const WHATSAPP = '919876543210'; // Replace with actual number
+const WHATSAPP = '918619658589'; // User's custom WhatsApp number
 
 /* ── Navbar ── */
 const navbar = document.getElementById('navbar');
