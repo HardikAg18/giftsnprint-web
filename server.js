@@ -35,7 +35,6 @@ app.use(morgan('combined'));
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
 // API Routes
 app.use('/api/auth', require('./server/routes/auth'));
@@ -61,9 +60,9 @@ app.get('/api/track/:orderId', async (req, res) => {
 // Serve admin panel
 app.get('/admin/*', (req, res) => {
     const adminFile = req.path.replace('/admin/', '');
-    const filePath = path.join(__dirname, 'admin', adminFile.includes('.html') ? adminFile : adminFile + '.html');
+    const filePath = path.join(__dirname, 'public', 'admin', adminFile.includes('.html') ? adminFile : adminFile + '.html');
     if (fs.existsSync(filePath)) res.sendFile(filePath);
-    else res.sendFile(path.join(__dirname, 'admin', 'index.html'));
+    else res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
 });
 
 // SPA fallback - serve index.html for all other routes

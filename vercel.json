@@ -6,14 +6,6 @@
       "destination": "https://giftsnprint-web-production.up.railway.app/api/$1"
     },
     {
-      "source": "/admin",
-      "destination": "/admin/index.html"
-    },
-    {
-      "source": "/admin/(.*)",
-      "destination": "/admin/$1"
-    },
-    {
       "source": "/(.*)",
       "destination": "/public/$1"
     }
