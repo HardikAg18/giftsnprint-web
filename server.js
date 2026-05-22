@@ -10,9 +10,13 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Create uploads directory
-const uploadsDir = path.join(__dirname, 'public', 'uploads', 'products');
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+// Create uploads directory (Ignore on Serverless/Vercel read-only FS)
+try {
+    const uploadsDir = path.join(__dirname, 'public', 'uploads', 'products');
+    if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+} catch (e) {
+    console.log('Skipping uploads directory creation on Serverless environment');
+}
 
 // Security middleware
 app.use(helmet({ contentSecurityPolicy: false }));
