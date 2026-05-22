@@ -6,10 +6,13 @@ const db = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+let razorpay = null;
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+    razorpay = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET
+    });
+}
 
 // POST /api/payment/create-order
 router.post('/create-order', async (req, res) => {
@@ -41,6 +44,10 @@ router.post('/create-order', async (req, res) => {
         const total = Math.round(subtotal - discount + gst + shipping);
         
         // Create Razorpay order
+        if (!razorpay) {
+            return res.status(500).json({ success: false, message: 'Payment gateway is not configured.' });
+        }
+        
         const rzpOrder = await razorpay.orders.create({
             amount: total * 100, // paise
             currency: 'INR',
