@@ -76,12 +76,15 @@ app.use((err, req, res, next) => {
     res.status(500).json({ success: false, message: 'Internal server error.' });
 });
 
-app.listen(PORT, () => {
-    console.log(`\n🚀 GiftsNPrint server running on port ${PORT}`);
-    console.log(`🌐 Website: http://localhost:${PORT}`);
-    console.log(`🔧 Admin: http://localhost:${PORT}/admin`);
-    console.log(`📚 API: http://localhost:${PORT}/api`);
-    console.log(`\n✅ Ready to serve!\n`);
-});
+// Server listen (only if not running on Vercel)
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`\n🚀 GiftsNPrint server running on port ${PORT}`);
+        console.log(`🌐 Website: http://localhost:${PORT}`);
+        console.log(`🔧 Admin: http://localhost:${PORT}/admin`);
+        console.log(`📚 API: http://localhost:${PORT}/api\n`);
+    });
+}
 
+// Export for Vercel Serverless Functions
 module.exports = app;
