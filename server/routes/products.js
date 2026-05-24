@@ -6,11 +6,7 @@ const multer = require('multer');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, 'public/uploads/products/'),
-    filename: (req, file, cb) => cb(null, uuidv4() + path.extname(file.originalname))
-});
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
+// Note: Multer is removed for Serverless environments. Admin Panel will send Image URLs.
 
 // GET /api/products - List all products (public)
 router.get('/', async (req, res) => {
@@ -94,15 +90,14 @@ router.get('/:slug', async (req, res) => {
 
 // Admin routes below - protected
 // POST /api/products - Create product
-router.post('/', auth, upload.single('image'), async (req, res) => {
+router.post('/', auth, async (req, res) => {
     try {
-        const { category_id, name, short_description, description, base_price, min_order_qty, tags, is_featured, pricing_tiers } = req.body;
+        const { category_id, name, short_description, description, base_price, min_order_qty, unit_type, tags, is_featured, image_url, pricing_tiers } = req.body;
         const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        const image_url = req.file ? `/uploads/products/${req.file.filename}` : null;
         
         const [result] = await db.execute(
-            'INSERT INTO products (category_id, name, slug, short_description, description, base_price, min_order_qty, image_url, tags, is_featured) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [category_id, name, slug, short_description, description, base_price, min_order_qty || 1, image_url, tags, is_featured ? 1 : 0]
+            'INSERT INTO products (category_id, name, slug, short_description, description, base_price, min_order_qty, unit_type, image_url, tags, is_featured) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [category_id, name, slug, short_description, description, base_price, min_order_qty || 1, unit_type || 'pcs', image_url || null, tags, is_featured ? 1 : 0]
         );
         
         const productId = result.insertId;
@@ -123,11 +118,11 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
 });
 
 // PUT /api/products/:id - Update product
-router.put('/:id', auth, upload.single('image'), async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
     try {
-        const { category_id, name, short_description, description, base_price, min_order_qty, tags, is_featured, is_active, pricing_tiers } = req.body;
-        const updates = { category_id, name, short_description, description, base_price, min_order_qty, tags, is_featured: is_featured ? 1 : 0, is_active: is_active ? 1 : 0 };
-        if (req.file) updates.image_url = `/uploads/products/${req.file.filename}`;
+        const { category_id, name, short_description, description, base_price, min_order_qty, unit_type, tags, is_featured, is_active, image_url, pricing_tiers } = req.body;
+        const updates = { category_id, name, short_description, description, base_price, min_order_qty, unit_type: unit_type || 'pcs', tags, is_featured: is_featured ? 1 : 0, is_active: is_active ? 1 : 0 };
+        if (image_url) updates.image_url = image_url;
         
         const fields = Object.keys(updates).map(k => `${k} = ?`).join(', ');
         await db.execute(`UPDATE products SET ${fields} WHERE id = ?`, [...Object.values(updates), req.params.id]);

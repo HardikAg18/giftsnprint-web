@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html><html lang="en">
+<!DOCTYPE html><html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Products - GiftsNPrint Admin</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="/admin/css/admin.css"></head>
@@ -31,9 +31,9 @@
 
 <!-- Add Product Modal -->
 <div class="modal-overlay" id="addProductModal">
-  <div class="modal">
+  <div class="modal" style="max-width: 650px;">
     <div class="modal-header"><h3>Add New Product</h3><button class="modal-close" onclick="closeModal('addProductModal')"><i class="fas fa-times"></i></button></div>
-    <form id="addProductForm" enctype="multipart/form-data"><div class="modal-body">
+    <form id="addProductForm"><div class="modal-body">
       <div id="addProductAlert"></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Product Name *</label><input type="text" name="name" class="form-control" required placeholder="e.g. Custom T-Shirt"></div>
@@ -43,11 +43,28 @@
       <div class="form-group"><label class="form-label">Full Description</label><textarea name="description" class="form-control" rows="3"></textarea></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Base Price (₹) *</label><input type="number" name="base_price" class="form-control" required min="0" step="0.01"></div>
+        <div class="form-group"><label class="form-label">Unit Type *</label>
+          <select name="unit_type" class="form-control" required>
+            <option value="pcs">Pieces (pcs)</option>
+            <option value="sqft">Square Feet (sqft)</option>
+            <option value="sqin">Square Inch (sqin)</option>
+            <option value="meters">Meters (m)</option>
+          </select>
+        </div>
         <div class="form-group"><label class="form-label">Min Order Qty</label><input type="number" name="min_order_qty" class="form-control" value="25" min="1"></div>
       </div>
+      <div class="form-group"><label class="form-label">Product Image URL</label><input type="url" name="image_url" class="form-control" placeholder="https://example.com/image.jpg"></div>
       <div class="form-group"><label class="form-label">Tags (comma separated)</label><input type="text" name="tags" class="form-control" placeholder="t-shirt, printing, custom"></div>
-      <div class="form-group"><label class="form-label">Product Image</label><input type="file" name="image" class="form-control" accept="image/*"></div>
-      <div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" name="is_featured" value="1"> <span style="font-size:14px">Mark as Featured</span></label></div>
+      
+      <div class="form-group" style="background:var(--surface2);padding:16px;border-radius:12px;border:1px solid var(--border)">
+        <label class="form-label" style="display:flex;justify-content:space-between;align-items:center">
+          <span>Bulk Pricing Tiers</span>
+          <button type="button" class="btn btn-sm btn-outline" onclick="addPricingTier()"><i class="fas fa-plus"></i> Add Tier</button>
+        </label>
+        <div id="pricingTiersContainer" style="display:flex;flex-direction:column;gap:12px;margin-top:12px"></div>
+      </div>
+
+      <div class="form-group" style="margin-top:16px"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" name="is_featured" value="1"> <span style="font-size:14px">Mark as Featured</span></label></div>
     </div><div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('addProductModal')">Cancel</button><button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Add Product</button></div></form>
   </div>
 </div>
@@ -62,14 +79,59 @@ document.addEventListener('DOMContentLoaded', () => {
 document.getElementById('addProductForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = e.target;
-  const fd = new FormData(form);
   const alert = document.getElementById('addProductAlert');
+  
+  // Collect base data
+  const data = {
+    category_id: form.category_id.value,
+    name: form.name.value,
+    short_description: form.short_description.value,
+    description: form.description.value,
+    base_price: parseFloat(form.base_price.value),
+    min_order_qty: parseInt(form.min_order_qty.value),
+    unit_type: form.unit_type.value,
+    tags: form.tags.value,
+    image_url: form.image_url.value,
+    is_featured: form.is_featured.checked ? 1 : 0
+  };
+
+  // Collect pricing tiers
+  const tiers = [];
+  document.querySelectorAll('.pricing-tier-row').forEach(row => {
+    tiers.push({
+      min_qty: parseInt(row.querySelector('[name="tier_min"]').value),
+      max_qty: row.querySelector('[name="tier_max"]').value ? parseInt(row.querySelector('[name="tier_max"]').value) : null,
+      price_per_unit: parseFloat(row.querySelector('[name="tier_price"]').value),
+      label: row.querySelector('[name="tier_label"]').value
+    });
+  });
+  if (tiers.length > 0) data.pricing_tiers = JSON.stringify(tiers);
+
   try {
-    const res = await fetch('/api/products', { method:'POST', headers:{ 'Authorization': 'Bearer ' + localStorage.getItem('gnp_admin_token') }, body: fd });
-    const data = await res.json();
-    if (data.success) { showAdminToast('Product added!'); closeModal('addProductModal'); form.reset(); loadAdminProducts(); }
-    else alert.innerHTML = '<div class="alert alert-error">' + (data.message||'Failed to add product.') + '</div>';
+    const res = await fetch('/api/products', { 
+      method:'POST', 
+      headers:{ 'Authorization': 'Bearer ' + localStorage.getItem('gnp_admin_token'), 'Content-Type': 'application/json' }, 
+      body: JSON.stringify(data) 
+    });
+    const resData = await res.json();
+    if (resData.success) { showAdminToast('Product added!'); closeModal('addProductModal'); form.reset(); document.getElementById('pricingTiersContainer').innerHTML = ''; loadAdminProducts(); }
+    else alert.innerHTML = '<div class="alert alert-error">' + (resData.message||'Failed to add product.') + '</div>';
   } catch(err) { alert.innerHTML = '<div class="alert alert-error">Server error.</div>'; }
 });
+
+window.addPricingTier = function() {
+  const c = document.getElementById('pricingTiersContainer');
+  const div = document.createElement('div');
+  div.className = 'pricing-tier-row form-row';
+  div.style.gap = '8px';
+  div.innerHTML = `
+    <div style="flex:1"><input type="number" name="tier_min" class="form-control" placeholder="Min Qty" required></div>
+    <div style="flex:1"><input type="number" name="tier_max" class="form-control" placeholder="Max Qty"></div>
+    <div style="flex:1"><input type="number" name="tier_price" class="form-control" placeholder="Price (₹)" step="0.01" required></div>
+    <div style="flex:2"><input type="text" name="tier_label" class="form-control" placeholder="Label (e.g. Bulk Deal)"></div>
+    <button type="button" class="btn btn-sm btn-danger btn-icon" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>
+  `;
+  c.appendChild(div);
+};
 </script>
 </body></html>

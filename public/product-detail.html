@@ -44,9 +44,11 @@
           <label class="form-label">Quantity (units)</label>
           <div style="display:flex;align-items:center;gap:12px">
             <input type="number" id="minQty" class="qty-input" value="25" min="1">
-            <span style="font-size:13px;color:var(--text-muted)">units</span>
+            <span id="unitText" style="font-size:13px;color:var(--text-muted);text-transform:capitalize">units</span>
           </div>
         </div>
+
+        <div id="totalPriceDisplay" style="font-family:'Outfit',sans-serif;font-size:24px;font-weight:700;color:var(--text);margin-bottom:20px;">Total: ₹0</div>
 
         <!-- Customization Note -->
         <div class="form-group">

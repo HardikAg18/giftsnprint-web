@@ -39,6 +39,7 @@ CREATE TABLE products (
     description TEXT,
     base_price DECIMAL(10,2) NOT NULL,
     min_order_qty INT DEFAULT 1,
+    unit_type VARCHAR(50) DEFAULT 'pcs',
     image_url VARCHAR(255),
     gallery_images JSON,
     tags VARCHAR(500),

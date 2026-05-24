@@ -32,7 +32,7 @@ async function loadProducts(params = {}) {
           <h3 class="card-title">${p.name}</h3>
           <p class="card-desc">${p.short_description || ''}</p>
           <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
-            <div class="card-price">₹${Number(p.base_price).toLocaleString('en-IN')}<span class="card-price-unit">/unit</span></div>
+            <div class="card-price">₹${Number(p.base_price).toLocaleString('en-IN')}<span class="card-price-unit">/${p.unit_type || 'pcs'}</span></div>
             <div class="rating"><i class="fas fa-star"></i> ${p.rating || '4.8'}</div>
           </div>
         </div>
@@ -111,11 +111,12 @@ async function loadProductDetail() {
     document.getElementById('productName').textContent = p.name;
     document.getElementById('productCategory').textContent = p.category_name;
     document.getElementById('productDesc').textContent = p.description || p.short_description || '';
-    document.getElementById('productPrice').textContent = `₹${Number(p.base_price).toLocaleString('en-IN')}`;
+    document.getElementById('productPrice').textContent = `₹${Number(p.base_price).toLocaleString('en-IN')} / ${p.unit_type || 'pcs'}`;
     document.getElementById('productRating').textContent = p.rating || '4.8';
     document.getElementById('productOrders').textContent = p.total_orders || '100';
     document.getElementById('minQty').value = p.min_order_qty || 25;
-    document.getElementById('minQtyHint').textContent = `Minimum order: ${p.min_order_qty || 25} units`;
+    document.getElementById('minQtyHint').textContent = `Minimum order: ${p.min_order_qty || 25} ${p.unit_type || 'pcs'}`;
+    document.getElementById('unitText').textContent = p.unit_type || 'pcs';
 
     const img = document.getElementById('productImage');
     if (img) { img.src = p.image_url || '/images/hero_banner.png'; img.alt = p.name; }
@@ -167,16 +168,26 @@ async function loadProductDetail() {
 
     // Qty change updates price
     const qtyInput = document.getElementById('minQty');
-    qtyInput?.addEventListener('change', () => {
-      const qty = parseInt(qtyInput.value);
+    
+    function calculateTotal() {
+      const qty = parseInt(qtyInput.value) || 1;
+      let currentPrice = parseFloat(p.base_price);
+      
       if (p.pricing_tiers?.length) {
-        let applicableTier = p.pricing_tiers[0];
         for (const t of p.pricing_tiers) {
-          if (qty >= t.min_qty) applicableTier = t;
+          if (qty >= t.min_qty && (!t.max_qty || qty <= t.max_qty)) {
+            currentPrice = parseFloat(t.price_per_unit);
+          }
         }
-        document.getElementById('productPrice').textContent = `₹${Number(applicableTier.price_per_unit).toFixed(2)}`;
       }
-    });
+      
+      document.getElementById('productPrice').textContent = `₹${currentPrice.toLocaleString('en-IN')} / ${p.unit_type || 'pcs'}`;
+      const total = (currentPrice * qty).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+      document.getElementById('totalPriceDisplay').textContent = `Total: ₹${total}`;
+    }
+    
+    qtyInput?.addEventListener('input', calculateTotal);
+    calculateTotal(); // initial calculation
   } catch (err) {
     console.error(err);
   }
