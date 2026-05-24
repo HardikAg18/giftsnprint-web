@@ -21,7 +21,7 @@
   <div class="sidebar-footer"><div class="sidebar-user"><div class="sidebar-avatar">A</div><div><div class="sidebar-username">Admin</div><div class="sidebar-role">Super Admin</div></div><button onclick="adminLogout()" style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px" title="Logout"><i class="fas fa-sign-out-alt"></i></button></div></div>
 </div>
 <div class="admin-main">
-<div class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="hamburger-admin" id="hamburgerAdmin"><i class="fas fa-bars"></i></button><div class="topbar-title">Products</div></div><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="openModal('addProductModal')"><i class="fas fa-plus"></i> Add Product</button></div></div>
+<div class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="hamburger-admin" id="hamburgerAdmin"><i class="fas fa-bars"></i></button><div class="topbar-title">Products</div></div><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="openAddProduct()"><i class="fas fa-plus"></i> Add Product</button></div></div>
 <div class="admin-content">
   <div class="admin-table-wrap">
     <div class="admin-table-header"><div class="admin-table-title">All Products</div><div class="search-box" style="width:240px"><i class="fas fa-search"></i><input type="text" id="productSearch" class="form-control" placeholder="Search products..."></div></div>
@@ -35,6 +35,7 @@
     <div class="modal-header"><h3>Add New Product</h3><button class="modal-close" onclick="closeModal('addProductModal')"><i class="fas fa-times"></i></button></div>
     <form id="addProductForm"><div class="modal-body">
       <div id="addProductAlert"></div>
+      <input type="hidden" id="editProductId" value="">
       <div class="form-row">
         <div class="form-group"><label class="form-label">Product Name *</label><input type="text" name="name" class="form-control" required placeholder="e.g. Custom T-Shirt"></div>
         <div class="form-group"><label class="form-label">Category *</label><select name="category_id" class="form-control" required><option value="">Select</option><option value="1">Custom Printing</option><option value="2">Corporate Gifts</option><option value="3">Awards & Trophies</option><option value="4">Promotional Items</option><option value="5">Advanced Printing</option></select></div>
@@ -89,6 +90,7 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
   e.preventDefault();
   const form = e.target;
   const alert = document.getElementById('addProductAlert');
+  const editId = document.getElementById('editProductId').value;
   
   // Collect base data
   const data = {
@@ -133,16 +135,84 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
   if (options.length > 0) data.custom_options = JSON.stringify(options);
 
   try {
-    const res = await fetch('/api/products', { 
-      method:'POST', 
+    const method = editId ? 'PUT' : 'POST';
+    const url = editId ? `/api/products/${editId}` : '/api/products';
+    const res = await fetch(url, { 
+      method: method, 
       headers:{ 'Authorization': 'Bearer ' + localStorage.getItem('gnp_admin_token'), 'Content-Type': 'application/json' }, 
       body: JSON.stringify(data) 
     });
     const resData = await res.json();
-    if (resData.success) { showAdminToast('Product added!'); closeModal('addProductModal'); form.reset(); document.getElementById('pricingTiersContainer').innerHTML = ''; document.getElementById('customOptionsContainer').innerHTML = ''; loadAdminProducts(); }
-    else alert.innerHTML = '<div class="alert alert-error">' + (resData.message||'Failed to add product.') + '</div>';
+    if (resData.success) { showAdminToast(editId ? 'Product updated!' : 'Product added!'); closeModal('addProductModal'); form.reset(); document.getElementById('editProductId').value = ''; document.getElementById('pricingTiersContainer').innerHTML = ''; document.getElementById('customOptionsContainer').innerHTML = ''; loadAdminProducts(); }
+    else alert.innerHTML = '<div class="alert alert-error">' + (resData.message||'Failed to save product.') + '</div>';
   } catch(err) { alert.innerHTML = '<div class="alert alert-error">Server error.</div>'; }
 });
+
+window.openAddProduct = function() {
+  document.getElementById('editProductId').value = '';
+  document.getElementById('addProductForm').reset();
+  document.getElementById('pricingTiersContainer').innerHTML = '';
+  document.getElementById('customOptionsContainer').innerHTML = '';
+  document.querySelector('#addProductModal h3').textContent = 'Add New Product';
+  document.querySelector('#addProductForm button[type="submit"]').innerHTML = '<i class="fas fa-plus"></i> Add Product';
+  openModal('addProductModal');
+};
+
+window.editProduct = async function(p) {
+  document.getElementById('editProductId').value = p.id;
+  document.querySelector('#addProductModal h3').textContent = 'Edit Product';
+  document.querySelector('#addProductForm button[type="submit"]').innerHTML = '<i class="fas fa-save"></i> Save Changes';
+  const form = document.getElementById('addProductForm');
+  
+  form.name.value = p.name;
+  form.category_id.value = p.category_id;
+  form.short_description.value = p.short_description || '';
+  form.description.value = p.description || '';
+  form.base_price.value = p.base_price;
+  form.min_order_qty.value = p.min_order_qty;
+  form.unit_type.value = p.unit_type;
+  form.image_url.value = p.image_url || '';
+  form.tags.value = p.tags || '';
+  form.is_featured.checked = p.is_featured;
+
+  const tiersC = document.getElementById('pricingTiersContainer');
+  tiersC.innerHTML = '';
+  // Try to load pricing tiers from API since they are not in the main product object
+  try {
+    const res = await fetch(`/api/products/${p.slug}`);
+    const data = await res.json();
+    if (data.success && data.product.pricing_tiers) {
+      data.product.pricing_tiers.forEach(t => {
+        window.addPricingTier();
+        const lastRow = tiersC.lastElementChild;
+        lastRow.querySelector('[name="tier_min"]').value = t.min_qty;
+        lastRow.querySelector('[name="tier_max"]').value = t.max_qty || '';
+        lastRow.querySelector('[name="tier_price"]').value = t.price_per_unit;
+        lastRow.querySelector('[name="tier_label"]').value = t.label || '';
+      });
+    }
+  } catch(e) {}
+
+  const optsC = document.getElementById('customOptionsContainer');
+  optsC.innerHTML = '';
+  if (p.custom_options && Array.isArray(p.custom_options)) {
+    p.custom_options.forEach((opt, i) => {
+      window.addCustomOption();
+      const lastOpt = optsC.lastElementChild;
+      lastOpt.querySelector('[name="opt_name"]').value = opt.name;
+      const choicesC = lastOpt.querySelector('[id^="opt_"][id$="_choices"]');
+      choicesC.innerHTML = ''; // clear default choice
+      const optId = choicesC.id.replace('_choices', '');
+      opt.choices.forEach(c => {
+        window.addOptionChoice(optId);
+        const lastChoice = choicesC.lastElementChild;
+        lastChoice.querySelector('[name="choice_label"]').value = c.label;
+        lastChoice.querySelector('[name="choice_price"]').value = c.price_modifier;
+      });
+    });
+  }
+  openModal('addProductModal');
+};
 
 window.addPricingTier = function() {
   const c = document.getElementById('pricingTiersContainer');
