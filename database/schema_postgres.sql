@@ -42,6 +42,7 @@ CREATE TABLE products (
     unit_type VARCHAR(50) DEFAULT 'pcs',
     image_url VARCHAR(255),
     gallery_images JSON,
+    custom_options JSON,
     tags VARCHAR(500),
     is_featured BOOLEAN DEFAULT FALSE,
     is_active BOOLEAN DEFAULT TRUE,

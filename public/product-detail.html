@@ -39,16 +39,32 @@
         <div style="font-size:13px;color:var(--text-muted);margin-top:4px" id="minQtyHint">Minimum order: 25 units</div>
         <p id="productDesc" style="color:var(--text-muted);margin:20px 0;line-height:1.9;font-size:15px"></p>
 
-        <!-- Quantity -->
-        <div style="margin-bottom:20px">
-          <label class="form-label">Quantity (units)</label>
-          <div style="display:flex;align-items:center;gap:12px">
-            <input type="number" id="minQty" class="qty-input" value="25" min="1">
-            <span id="unitText" style="font-size:13px;color:var(--text-muted);text-transform:capitalize">units</span>
-          </div>
+        <!-- Dynamic Variants / Options (Vistaprint Style) -->
+        <div id="dynamicOptionsContainer" style="margin-bottom:20px;display:flex;flex-direction:column;gap:16px;"></div>
+
+        <!-- Custom Size Inputs (Hidden by default) -->
+        <div id="customSizeContainer" class="hidden" style="margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div><label class="form-label">Custom Width (<span id="customUnit1">cm</span>)</label><input type="number" id="customWidth" class="form-control" min="1"></div>
+          <div><label class="form-label">Custom Height (<span id="customUnit2">cm</span>)</label><input type="number" id="customHeight" class="form-control" min="1"></div>
         </div>
 
+        <!-- Quantity Dropdown -->
+        <div style="margin-bottom:24px">
+          <label class="form-label">Quantity</label>
+          <select id="qtySelect" class="form-control" style="font-size:16px;font-weight:600;padding:12px;width:100%;background-color:var(--surface2);">
+            <option value="25">Loading quantities...</option>
+          </select>
+        </div>
+
+        <!-- Total Price -->
         <div id="totalPriceDisplay" style="font-family:'Outfit',sans-serif;font-size:24px;font-weight:700;color:var(--text);margin-bottom:20px;">Total: ₹0</div>
+
+        <!-- Design Actions -->
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px">
+          <button class="btn btn-primary" style="width:100%;padding:14px;background-color:#6dcbed;color:#000;border:none" onclick="alert('Browse Designs feature coming soon!')"><i class="fas fa-images"></i> Browse designs</button>
+          <button class="btn btn-outline" style="width:100%;padding:14px" onclick="document.getElementById('designUploadInput').click()"><i class="fas fa-cloud-upload-alt"></i> Upload design</button>
+          <input type="file" id="designUploadInput" style="display:none" accept="image/*,.pdf">
+        </div>
 
         <!-- Customization Note -->
         <div class="form-group">

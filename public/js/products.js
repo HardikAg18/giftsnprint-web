@@ -114,9 +114,7 @@ async function loadProductDetail() {
     document.getElementById('productPrice').textContent = `₹${Number(p.base_price).toLocaleString('en-IN')} / ${p.unit_type || 'pcs'}`;
     document.getElementById('productRating').textContent = p.rating || '4.8';
     document.getElementById('productOrders').textContent = p.total_orders || '100';
-    document.getElementById('minQty').value = p.min_order_qty || 25;
-    document.getElementById('minQtyHint').textContent = `Minimum order: ${p.min_order_qty || 25} ${p.unit_type || 'pcs'}`;
-    document.getElementById('unitText').textContent = p.unit_type || 'pcs';
+    document.getElementById('minQtyHint').textContent = `Minimum order: ${p.min_order_qty || 1} ${p.unit_type || 'pcs'}`;
 
     const img = document.getElementById('productImage');
     if (img) { img.src = p.image_url || '/images/hero_banner.png'; img.alt = p.name; }
@@ -151,42 +149,103 @@ async function loadProductDetail() {
         </div>`).join('');
     }
 
+    // Setup Quantity Dropdown
+    const qtySelect = document.getElementById('qtySelect');
+    if (qtySelect) {
+      qtySelect.innerHTML = '';
+      if (p.pricing_tiers && p.pricing_tiers.length > 0) {
+        p.pricing_tiers.forEach((t, i) => {
+          const opt = document.createElement('option');
+          opt.value = t.min_qty;
+          opt.dataset.price = t.price_per_unit;
+          opt.innerHTML = `${t.min_qty} (₹${Number(t.price_per_unit).toFixed(2)} / unit) ${i === p.pricing_tiers.length-1 ? ' - Recommended' : ''}`;
+          qtySelect.appendChild(opt);
+        });
+      } else {
+        const minQ = p.min_order_qty || 1;
+        qtySelect.innerHTML = `<option value="${minQ}" data-price="${p.base_price}">${minQ} (₹${p.base_price} / unit)</option>`;
+      }
+    }
+
+    // Render Dynamic Options
+    const dynContainer = document.getElementById('dynamicOptionsContainer');
+    if (dynContainer && p.custom_options) {
+      let optionsHtml = '';
+      p.custom_options.forEach((opt, idx) => {
+        optionsHtml += `
+          <div>
+            <label class="form-label">${opt.name}</label>
+            <select class="form-control dyn-option-select" data-name="${opt.name}">
+              ${opt.choices.map(c => `<option value="${c.label}" data-modifier="${c.price_modifier}">${c.label} ${c.price_modifier > 0 ? '(+₹'+c.price_modifier+')' : ''}</option>`).join('')}
+            </select>
+          </div>
+        `;
+      });
+      dynContainer.innerHTML = optionsHtml;
+    }
+
     // Add to cart
     const atcBtn = document.getElementById('addToCartBtn');
     atcBtn?.addEventListener('click', () => {
-      const qty = parseInt(document.getElementById('minQty').value) || p.min_order_qty;
+      const qty = parseInt(qtySelect.value);
       const customization = document.getElementById('customizationNote')?.value || '';
-      addToCart({ id: p.id, name: p.name, price: p.base_price, qty, image: p.image_url, slug: p.slug, customization });
+      addToCart({ id: p.id, name: p.name, price: window.currentCalculatedPrice || p.base_price, qty, image: p.image_url, slug: p.slug, customization });
     });
 
     // Quote
     const quoteBtn = document.getElementById('quoteBtn');
     quoteBtn?.addEventListener('click', () => {
-      const qty = document.getElementById('minQty').value;
+      const qty = qtySelect.value;
       window.location.href = `/quote.html?product=${encodeURIComponent(p.name)}&qty=${qty}`;
     });
 
-    // Qty change updates price
-    const qtyInput = document.getElementById('minQty');
-    
+    // Calculate Total Price
+    const customSizeContainer = document.getElementById('customSizeContainer');
+    const customW = document.getElementById('customWidth');
+    const customH = document.getElementById('customHeight');
+
     function calculateTotal() {
-      const qty = parseInt(qtyInput.value) || 1;
-      let currentPrice = parseFloat(p.base_price);
+      const qty = parseInt(qtySelect.value) || 1;
+      const selectedTierOpt = qtySelect.options[qtySelect.selectedIndex];
+      let baseUnitPrice = selectedTierOpt ? parseFloat(selectedTierOpt.dataset.price) : parseFloat(p.base_price);
       
-      if (p.pricing_tiers?.length) {
-        for (const t of p.pricing_tiers) {
-          if (qty >= t.min_qty && (!t.max_qty || qty <= t.max_qty)) {
-            currentPrice = parseFloat(t.price_per_unit);
-          }
+      let modifiers = 0;
+      let isCustomSize = false;
+      
+      document.querySelectorAll('.dyn-option-select').forEach(sel => {
+        const choiceOpt = sel.options[sel.selectedIndex];
+        if (choiceOpt) {
+          modifiers += parseFloat(choiceOpt.dataset.modifier || 0);
+          if (choiceOpt.value.toLowerCase() === 'custom') isCustomSize = true;
         }
+      });
+
+      if (customSizeContainer) {
+        customSizeContainer.classList.toggle('hidden', !isCustomSize);
       }
+
+      let areaMultiplier = 1;
+      if (isCustomSize && customW && customH) {
+        const w = parseFloat(customW.value) || 1;
+        const h = parseFloat(customH.value) || 1;
+        // Basic area calc (w * h / 100) as an example multiplier
+        areaMultiplier = (w * h) / 100;
+        if (areaMultiplier < 1) areaMultiplier = 1;
+      }
+
+      const finalUnitPrice = (baseUnitPrice + modifiers) * areaMultiplier;
+      window.currentCalculatedPrice = finalUnitPrice;
       
-      document.getElementById('productPrice').textContent = `₹${currentPrice.toLocaleString('en-IN')} / ${p.unit_type || 'pcs'}`;
-      const total = (currentPrice * qty).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+      document.getElementById('productPrice').textContent = `₹${finalUnitPrice.toLocaleString('en-IN', {maximumFractionDigits:2})} / ${p.unit_type || 'pcs'}`;
+      const total = (finalUnitPrice * qty).toLocaleString('en-IN', { maximumFractionDigits: 2 });
       document.getElementById('totalPriceDisplay').textContent = `Total: ₹${total}`;
     }
     
-    qtyInput?.addEventListener('input', calculateTotal);
+    qtySelect?.addEventListener('change', calculateTotal);
+    customW?.addEventListener('input', calculateTotal);
+    customH?.addEventListener('input', calculateTotal);
+    document.querySelectorAll('.dyn-option-select').forEach(el => el.addEventListener('change', calculateTotal));
+    
     calculateTotal(); // initial calculation
   } catch (err) {
     console.error(err);

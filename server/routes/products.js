@@ -92,12 +92,12 @@ router.get('/:slug', async (req, res) => {
 // POST /api/products - Create product
 router.post('/', auth, async (req, res) => {
     try {
-        const { category_id, name, short_description, description, base_price, min_order_qty, unit_type, tags, is_featured, image_url, pricing_tiers } = req.body;
+        const { category_id, name, short_description, description, base_price, min_order_qty, unit_type, tags, is_featured, image_url, pricing_tiers, custom_options } = req.body;
         const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         
         const [result] = await db.execute(
-            'INSERT INTO products (category_id, name, slug, short_description, description, base_price, min_order_qty, unit_type, image_url, tags, is_featured) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [category_id, name, slug, short_description, description, base_price, min_order_qty || 1, unit_type || 'pcs', image_url || null, tags, is_featured ? 1 : 0]
+            'INSERT INTO products (category_id, name, slug, short_description, description, base_price, min_order_qty, unit_type, image_url, tags, is_featured, custom_options) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [category_id, name, slug, short_description, description, base_price, min_order_qty || 1, unit_type || 'pcs', image_url || null, tags, is_featured ? 1 : 0, custom_options || null]
         );
         
         const productId = result.insertId;
@@ -120,9 +120,10 @@ router.post('/', auth, async (req, res) => {
 // PUT /api/products/:id - Update product
 router.put('/:id', auth, async (req, res) => {
     try {
-        const { category_id, name, short_description, description, base_price, min_order_qty, unit_type, tags, is_featured, is_active, image_url, pricing_tiers } = req.body;
+        const { category_id, name, short_description, description, base_price, min_order_qty, unit_type, tags, is_featured, is_active, image_url, pricing_tiers, custom_options } = req.body;
         const updates = { category_id, name, short_description, description, base_price, min_order_qty, unit_type: unit_type || 'pcs', tags, is_featured: is_featured ? 1 : 0, is_active: is_active ? 1 : 0 };
         if (image_url) updates.image_url = image_url;
+        if (custom_options !== undefined) updates.custom_options = custom_options || null;
         
         const fields = Object.keys(updates).map(k => `${k} = ?`).join(', ');
         await db.execute(`UPDATE products SET ${fields} WHERE id = ?`, [...Object.values(updates), req.params.id]);
