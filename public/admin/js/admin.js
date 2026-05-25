@@ -159,6 +159,7 @@ document.getElementById('updateOrderForm')?.addEventListener('submit', async (e)
 window.loadAdminProducts = async function(params = {}) {
   const tbody = document.getElementById('adminProductsTbody');
   if (!tbody) return;
+  params.admin = 'true';
   const qs = new URLSearchParams(params).toString();
   const data = await apiRequest(`/products?${qs}`);
   if (!data?.success) return;

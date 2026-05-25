@@ -11,9 +11,14 @@ const { v4: uuidv4 } = require('uuid');
 // GET /api/products - List all products (public)
 router.get('/', async (req, res) => {
     try {
-        const { category, featured, search, sort, page = 1, limit = 12 } = req.query;
+        const { category, featured, search, sort, admin, page = 1, limit = 12 } = req.query;
         let query = `SELECT p.*, c.name as category_name, c.slug as category_slug FROM products p 
-                     JOIN categories c ON p.category_id = c.id WHERE p.is_active = TRUE`;
+                     JOIN categories c ON p.category_id = c.id`;
+        if (admin !== 'true') {
+            query += ` WHERE p.is_active = TRUE`;
+        } else {
+            query += ` WHERE 1=1`;
+        }
         const params = [];
         if (category) { query += ' AND c.slug = ?'; params.push(category); }
         if (featured === 'true') { query += ' AND p.is_featured = TRUE'; }
