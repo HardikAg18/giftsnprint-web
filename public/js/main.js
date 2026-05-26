@@ -1,6 +1,40 @@
 // GiftsNPrint - main.js
 const API = '/api';
-const WHATSAPP = '918619658589'; // User's custom WhatsApp number
+let WHATSAPP = '918619658589'; // Fallback
+let SETTINGS = {};
+
+/* ── Dynamic Settings ── */
+async function loadDynamicSettings() {
+  try {
+    const res = await fetch('/api/settings');
+    const data = await res.json();
+    if (data.success && data.data) {
+      SETTINGS = data.data;
+      if (SETTINGS.whatsapp) WHATSAPP = SETTINGS.whatsapp.replace(/[^0-9]/g, '');
+      
+      // Inject into DOM
+      document.querySelectorAll('[data-setting]').forEach(el => {
+        const key = el.getAttribute('data-setting');
+        if (SETTINGS[key]) {
+          if (el.tagName === 'A' && key === 'phone') el.href = `tel:${SETTINGS[key].replace(/[^0-9+]/g, '')}`;
+          else if (el.tagName === 'A' && key === 'email') el.href = `mailto:${SETTINGS[key]}`;
+          
+          // Only replace text content if the element isn't just an icon wrapper
+          if (el.childNodes.length === 1 || !el.querySelector('i')) {
+              el.textContent = SETTINGS[key];
+          } else {
+              // If there's an icon, we assume the text is right after it
+              const icon = el.querySelector('i');
+              el.innerHTML = '';
+              el.appendChild(icon);
+              el.appendChild(document.createTextNode(' ' + SETTINGS[key]));
+          }
+        }
+      });
+    }
+  } catch(e) {}
+}
+document.addEventListener('DOMContentLoaded', loadDynamicSettings);
 
 /* ── Navbar ── */
 const navbar = document.getElementById('navbar');

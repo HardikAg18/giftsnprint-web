@@ -200,43 +200,70 @@ window.loadEnquiries = async function() {
       <td>${e.subject || '—'}</td>
       <td>${statusBadge(e.status || 'open')}</td>
       <td>${formatDate(e.created_at)}</td>
-      <td><button class="btn btn-outline btn-sm" onclick="viewEnquiry(${e.id})">View</button></td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="updateEnquiryStatus(${e.id}, '${e.status === 'resolved' ? 'open' : 'resolved'}')">Mark ${e.status === 'resolved' ? 'Open' : 'Resolved'}</button>
+      </td>
     </tr>`).join('')
     : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px">No enquiries found.</td></tr>';
+};
+
+window.updateEnquiryStatus = async function(id, status) {
+    const data = await apiRequest(`/contact/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
+    if (data?.success) { showAdminToast('Status updated'); loadEnquiries(); }
+};
+
+/* ── Load Customers ── */
+window.loadCustomers = async function() {
+  const tbody = document.getElementById('customersTbody');
+  if (!tbody) return;
+  const data = await apiRequest('/customers');
+  if (!data?.success) return;
+  tbody.innerHTML = data.data?.length ? data.data.map(c => `
+    <tr>
+      <td><strong>${c.name}</strong></td>
+      <td>${c.email}</td>
+      <td>${c.phone}</td>
+      <td>${c.total_orders}</td>
+      <td>${formatINR(c.total_spent)}</td>
+      <td>${formatDate(c.last_active)}</td>
+      <td><span class="status ${c.is_subscriber ? 'status-approved' : ''}">${c.is_subscriber ? 'Subscribed' : 'No'}</span></td>
+    </tr>`).join('')
+    : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px">No customers found.</td></tr>';
 };
 
 /* ── Load Reviews ── */
 window.loadReviews = async function() {
   const tbody = document.getElementById('reviewsTbody');
   if (!tbody) return;
-  const data = await apiRequest('/reviews?pending=true');
+  const data = await apiRequest('/reviews/admin');
   if (!data?.success) return;
   tbody.innerHTML = data.data?.length ? data.data.map(r => `
     <tr>
-      <td><strong>${r.reviewer_name}</strong></td>
-      <td>${r.product_name || '—'}</td>
-      <td>${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</td>
-      <td style="max-width:200px;font-size:13px">${r.comment?.substring(0, 80)}${r.comment?.length > 80 ? '...' : ''}</td>
-      <td>${statusBadge(r.is_approved ? 'approved' : 'pending')}</td>
-      <td>${formatDate(r.created_at)}</td>
+      <td><div><strong>${r.customer_name}</strong></div><div style="font-size:12px;color:var(--text-muted)">${r.customer_email}</div></td>
+      <td>${r.product_name || 'General'}</td>
+      <td><div style="color:var(--accent)"><i class="fas fa-star"></i> ${r.rating}</div></td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.review_text}">${r.review_text}</td>
+      <td><span class="status ${r.is_approved ? 'status-approved' : 'status-pending'}">${r.is_approved ? 'Approved' : 'Pending'}</span></td>
       <td>
-        ${!r.is_approved ? `<button class="btn btn-primary btn-sm" onclick="approveReview(${r.id})"><i class="fas fa-check"></i></button>` : ''}
-        <button class="btn btn-danger btn-sm btn-icon" onclick="deleteReview(${r.id})"><i class="fas fa-trash"></i></button>
+        <button class="btn btn-outline btn-sm btn-icon" title="Toggle Approval" onclick="updateReviewStatus(${r.id}, ${!r.is_approved}, ${r.is_featured})"><i class="fas fa-${r.is_approved ? 'times' : 'check'}"></i></button>
       </td>
     </tr>`).join('')
-    : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px">No reviews found.</td></tr>';
+    : '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px">No reviews found.</td></tr>';
 };
 
-window.approveReview = async function(id) {
-  const data = await apiRequest(`/reviews/${id}/approve`, { method: 'PUT' });
-  if (data?.success) { showAdminToast('Review approved!'); loadReviews(); }
+window.updateReviewStatus = async function(id, is_approved, is_featured) {
+    const data = await apiRequest(`/reviews/${id}`, { method: 'PUT', body: JSON.stringify({ is_approved, is_featured }) });
+    if (data?.success) { showAdminToast('Review updated'); loadReviews(); }
 };
 
-window.deleteReview = async function(id) {
-  if (!confirm('Delete this review?')) return;
-  const data = await apiRequest(`/reviews/${id}`, { method: 'DELETE' });
-  if (data?.success) { showAdminToast('Review deleted.'); loadReviews(); }
-};
+document.addEventListener('DOMContentLoaded', () => {
+  requireAuth();
+  if (location.pathname.includes('index.html')) loadDashboardStats();
+  if (location.pathname.includes('orders.html')) loadOrders();
+  if (location.pathname.includes('customers.html')) loadCustomers();
+  if (location.pathname.includes('enquiries.html')) loadEnquiries();
+  if (location.pathname.includes('reviews.html')) loadReviews();
+});
 
 // Init on load
 requireAuth();

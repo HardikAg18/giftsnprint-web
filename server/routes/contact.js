@@ -74,4 +74,21 @@ router.get('/chatbot', (req, res) => {
     res.json({ success: true, response });
 });
 
+// GET /api/contact - Admin: Get all enquiries
+router.get('/', auth, async (req, res) => {
+    try {
+        const [enquiries] = await db.execute('SELECT * FROM enquiries ORDER BY created_at DESC');
+        res.json({ success: true, data: enquiries });
+    } catch (err) { res.status(500).json({ success: false, message: 'Server error.' }); }
+});
+
+// PUT /api/contact/:id/status - Admin: Update status
+router.put('/:id/status', auth, async (req, res) => {
+    try {
+        const { status } = req.body;
+        await db.execute('UPDATE enquiries SET status = ? WHERE id = ?', [status, req.params.id]);
+        res.json({ success: true, message: 'Status updated.' });
+    } catch (err) { res.status(500).json({ success: false, message: 'Server error.' }); }
+});
+
 module.exports = router;

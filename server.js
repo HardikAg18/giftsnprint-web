@@ -47,6 +47,8 @@ app.use('/api/orders', require('./server/routes/orders'));
 app.use('/api/payment', require('./server/routes/payment'));
 app.use('/api/contact', require('./server/routes/contact'));
 app.use('/api/reviews', require('./server/routes/reviews'));
+app.use('/api/settings', require('./server/routes/settings'));
+app.use('/api/customers', require('./server/routes/customers'));
 
 // Order tracking (public)
 app.get('/api/track/:orderId', async (req, res) => {
