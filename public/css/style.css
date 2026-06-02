@@ -241,6 +241,7 @@ select.form-control option{background:var(--surface2)}
 .float-anim{animation:float 4s ease-in-out infinite}
 
 /* Responsive */
+.mobile-menu { display: none; }
 @media(max-width:1024px){.footer-grid{grid-template-columns:1fr 1fr;gap:32px}}
 @media(max-width:768px){
   .nav-links,.nav-cta{display:none}
