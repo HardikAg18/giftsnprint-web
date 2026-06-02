@@ -1,6 +1,6 @@
 // chatbot.js — GiftsNPrint AI Assistant
 const BOT_NAME = 'PrintBot';
-const WHATSAPP_NUM = '919876543210';
+const WHATSAPP_NUM = '918769558589';
 
 const FAQ = [
   { patterns: ['hello','hi','hey','good morning','good evening'], response: `Hey there! 👋 Welcome to <strong>GiftsNPrint</strong>! I'm ${BOT_NAME}, your printing assistant. How can I help you today?`, buttons: ['Products','Pricing','My Order','Contact Us'] },
@@ -8,7 +8,7 @@ const FAQ = [
   { patterns: ['price','cost','rate','how much','pricing','charges'], response: `Our pricing is <strong>quantity-based</strong> — the more you order, the less you pay per unit! 💰<br><br>📦 Minimum order: <strong>25 units</strong><br>💸 Price drops significantly at 50, 100, 250+ units<br><br>Visit any product page to see the full pricing table.`, buttons: ['View Products','Get Quote','WhatsApp Us'] },
   { patterns: ['order','track','status','my order'], response: `To track your order, please enter your <strong>Order ID</strong> on our order tracking page. 📦<br><br>You can also WhatsApp us with your order ID for instant updates!`, buttons: ['Track Order','WhatsApp Us'] },
   { patterns: ['deliver','shipping','days','time'], response: `🚚 Delivery timelines:<br>• Standard: <strong>5-7 working days</strong><br>• Express: <strong>2-3 working days</strong><br>• Bulk orders: <strong>7-10 working days</strong><br><br>Free shipping on orders above ₹1,000!`, buttons: ['Place Order','Contact Us'] },
-  { patterns: ['contact','phone','call','email','address'], response: `📞 <strong>+91 98765 43210</strong><br>📧 info@giftsnprint.com<br>📍 Mumbai, Maharashtra<br><br>Or chat with us on WhatsApp for fastest response!`, buttons: ['WhatsApp Us','Contact Page'] },
+  { patterns: ['contact','phone','call','email','address'], response: `📞 <strong>+91 87695 58589</strong><br>📧 info@giftsnprint.com<br>📍 Jaipur, Rajasthan<br><br>Or chat with us on WhatsApp for fastest response!`, buttons: ['WhatsApp Us','Contact Page'] },
   { patterns: ['minimum','min order','moq'], response: `Our <strong>Minimum Order Quantity (MOQ)</strong> is <strong>25 units</strong> for most products. Some premium items start at 10 units. Bulk discounts apply from 50+ units! 🎉`, buttons: ['Get Quote','View Products'] },
   { patterns: ['payment','pay','razorpay','upi','card'], response: `We accept all payment methods: 💳<br>• UPI (GPay, PhonePe, Paytm)<br>• Credit/Debit Cards<br>• Net Banking<br>• Powered by <strong>Razorpay</strong> — 100% secure!`, buttons: ['Place Order'] },
   { patterns: ['quote','estimate','bulk'], response: `For a custom quote, please fill out our <strong>Quote Request Form</strong> with your product, quantity, and design details. We'll respond within <strong>2 hours</strong>! ⚡`, buttons: ['Get Quote','WhatsApp Us'] },
