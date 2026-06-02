@@ -307,33 +307,3 @@ body, a, button, input, select, textarea, .hover-target { cursor: none !importan
     width: 12px; height: 12px;
 }
 
-/* Typography Upgrades */
-@keyframes fadeUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.hero h1 {
-    font-size: clamp(48px, 8vw, 110px) !important;
-    letter-spacing: -4px !important;
-    animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.hero p {
-    font-size: clamp(18px, 2vw, 26px) !important;
-    animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.2s;
-}
-
-.hero-btns {
-    animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.4s;
-}
-
-.feature-card h3, .feature-title, .section-title {
-    font-size: clamp(28px, 4vw, 56px) !important;
-    font-weight: 900 !important;
-    letter-spacing: -2px !important;
-}
-
-.btn-primary, .btn-accent {
-    border-radius: 100px !important;
-}
