@@ -261,3 +261,79 @@ select.form-control option{background:var(--surface2)}
   .section{padding:60px 0}
   .btn-lg{padding:14px 28px;font-size:15px}
 }
+
+
+/* --- Hildenkaira Custom Cursor & UI Enhancements --- */
+body, a, button, input, select, textarea, .hover-target { cursor: none !important; }
+
+.cursor-dot {
+    width: 8px; height: 8px;
+    background-color: var(--accent);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none; z-index: 10000;
+    transform: translate(-50%, -50%);
+    transition: width 0.2s, height 0.2s, background-color 0.2s;
+}
+
+.cursor-outline {
+    width: 40px; height: 40px;
+    border: 1px solid rgba(16, 185, 129, 0.5);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s, background-color 0.3s, border-color 0.3s;
+}
+
+.cursor-glow {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, rgba(0,0,0,0) 70%);
+    position: fixed; top: 0; left: 0;
+    pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: width 0.5s, height 0.5s;
+}
+
+.cursor-outline.hovering {
+    width: 80px; height: 80px;
+    background-color: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0);
+    backdrop-filter: blur(4px);
+}
+
+.cursor-dot.hovering {
+    background-color: #fff;
+    width: 12px; height: 12px;
+}
+
+/* Typography Upgrades */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.hero h1 {
+    font-size: clamp(48px, 8vw, 110px) !important;
+    letter-spacing: -4px !important;
+    animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.hero p {
+    font-size: clamp(18px, 2vw, 26px) !important;
+    animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.2s;
+}
+
+.hero-btns {
+    animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.4s;
+}
+
+.feature-card h3, .feature-title, .section-title {
+    font-size: clamp(28px, 4vw, 56px) !important;
+    font-weight: 900 !important;
+    letter-spacing: -2px !important;
+}
+
+.btn-primary, .btn-accent {
+    border-radius: 100px !important;
+}

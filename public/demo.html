@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HildenKaira Style Full Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030305;
+            --text: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --accent: #10B981; /* Neon green */
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Hide default cursor */
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.05), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(124, 58, 237, 0.05), transparent 25%);
+        }
+
+        /* --- Custom Cursor Effects --- */
+        
+        /* The main dot that follows exactly */
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            position: fixed;
+            top: 0; left: 0;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        /* The trailing outline circle */
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            border-radius: 50%;
+            position: fixed;
+            top: 0; left: 0;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s, background-color 0.3s, border-color 0.3s;
+            /* No transition on top/left here, we will do it in JS for a smooth trailing spring effect */
+        }
+
+        /* The glowing background orb that follows the mouse loosely */
+        .cursor-glow {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(0,0,0,0) 70%);
+            position: fixed;
+            top: 0; left: 0;
+            pointer-events: none;
+            z-index: 1; /* Behind everything */
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+
+        /* Hover states for the cursor */
+        .cursor-outline.hovering {
+            width: 80px;
+            height: 80px;
+            background-color: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0);
+            backdrop-filter: blur(4px);
+        }
+        
+        .cursor-dot.hovering {
+            background-color: #fff;
+            width: 12px;
+            height: 12px;
+        }
+
+        /* --- UI Elements --- */
+
+        /* Navbar */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            padding: 24px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(3, 3, 5, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: -1px;
+            color: #fff;
+        }
+        .nav-links {
+            display: flex;
+            gap: 40px;
+        }
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+        .nav-links a:hover {
+            color: #fff;
+        }
+        .btn-nav {
+            padding: 10px 24px;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn-nav:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        /* Layout Utility */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 5%;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 100px;
+        }
+        .hero-text {
+            max-width: 1100px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 40px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.2s;
+        }
+        .hero h1 {
+            font-size: clamp(48px, 8vw, 110px);
+            font-weight: 900;
+            line-height: 1.05;
+            letter-spacing: -4px;
+            margin-bottom: 40px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.4s;
+        }
+        .hero h1 span {
+            color: var(--text-muted);
+        }
+        .hero p {
+            font-size: clamp(18px, 2vw, 28px);
+            color: var(--text-muted);
+            max-width: 700px;
+            margin-bottom: 60px;
+            line-height: 1.5;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.6s;
+        }
+        
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 50px;
+            background-color: #fff;
+            color: #000;
+            text-decoration: none;
+            border-radius: 100px;
+            font-weight: 700;
+            font-size: 18px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.8s;
+        }
+        .cta-btn:hover {
+            transform: scale(1.05) !important;
+            box-shadow: 0 20px 40px rgba(255,255,255,0.1);
+        }
+
+        /* Feature Section */
+        .features {
+            padding: 150px 0;
+            border-top: 1px solid var(--border);
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 60px;
+            margin-top: 80px;
+        }
+        .feature-card {
+            padding: 40px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .feature-card:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.2);
+        }
+        .feature-card h3 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* Large Image Section */
+        .showcase {
+            padding: 0 5% 150px;
+        }
+        .showcase-inner {
+            width: 100%;
+            height: 70vh;
+            background: url('https://images.unsplash.com/photo-1600132806370-bf17e65e942f?q=80&w=2000&auto=format&fit=crop') center/cover;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .showcase-inner::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+        }
+        .showcase-text {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+        .showcase-text h2 {
+            font-size: clamp(40px, 6vw, 80px);
+            font-weight: 900;
+            letter-spacing: -2px;
+        }
+
+        /* Footer */
+        footer {
+            padding: 80px 5%;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor Elements -->
+    <div class="cursor-glow" id="cursor-glow"></div>
+    <div class="cursor-outline" id="cursor-outline"></div>
+    <div class="cursor-dot" id="cursor-dot"></div>
+
+    <nav>
+        <div class="logo hover-target">GiftsNPrint</div>
+        <div class="nav-links">
+            <a href="#" class="hover-target">Our Work</a>
+            <a href="#" class="hover-target">Services</a>
+            <a href="#" class="hover-target">About Us</a>
+        </div>
+        <a href="#" class="btn-nav hover-target">Get a Quote</a>
+    </nav>
+
+    <section class="hero container">
+        <div class="hero-text">
+            <div class="badge">A New Standard</div>
+            <h1>Create gifts that <span>only your company can make.</span></h1>
+            <p>We will 10x your corporate gifting experience or work for free until it's done. Premium quality, unmatched precision.</p>
+            <a href="#" class="cta-btn hover-target">Start a Project</a>
+        </div>
+    </section>
+
+    <section class="features container">
+        <h2 style="font-size: clamp(32px, 5vw, 64px); font-weight: 900; letter-spacing: -2px;">Why choose us.</h2>
+        <div class="features-grid">
+            <div class="feature-card hover-target">
+                <h3>Absolute Precision</h3>
+                <p>Every print, every curve, exactly as you designed it. We don't compromise on the minor details.</p>
+            </div>
+            <div class="feature-card hover-target">
+                <h3>Lightning Fast</h3>
+                <p>Deadlines are sacred. We ensure your corporate gifts arrive well before your major events.</p>
+            </div>
+            <div class="feature-card hover-target">
+                <h3>Premium Materials</h3>
+                <p>We source only the highest quality materials globally so your brand always looks its absolute best.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="showcase">
+        <div class="showcase-inner hover-target">
+            <div class="showcase-text">
+                <h2>Designed to impress.</h2>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div>© 2026 GiftsNPrint. All rights reserved.</div>
+        <div>Made with precision in India.</div>
+    </footer>
+
+    <script>
+        // Custom Cursor Logic
+        const dot = document.getElementById('cursor-dot');
+        const outline = document.getElementById('cursor-outline');
+        const glow = document.getElementById('cursor-glow');
+        const hoverTargets = document.querySelectorAll('.hover-target, a');
+
+        // Track mouse position
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        
+        // Track outline position (for smooth trailing)
+        let outlineX = mouseX;
+        let outlineY = mouseY;
+        
+        // Track glow position (even slower trailing)
+        let glowX = mouseX;
+        let glowY = mouseY;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // Dot follows exactly and immediately
+            dot.style.left = mouseX + 'px';
+            dot.style.top = mouseY + 'px';
+        });
+
+        // Animation loop for smooth trailing effect
+        function animate() {
+            // Easing factor (lower = slower/smoother)
+            let easingOutline = 0.15;
+            let easingGlow = 0.05;
+            
+            // Calculate distance and apply easing for outline
+            outlineX += (mouseX - outlineX) * easingOutline;
+            outlineY += (mouseY - outlineY) * easingOutline;
+            
+            // Calculate distance and apply easing for glow
+            glowX += (mouseX - glowX) * easingGlow;
+            glowY += (mouseY - glowY) * easingGlow;
+            
+            // Apply new positions
+            outline.style.left = outlineX + 'px';
+            outline.style.top = outlineY + 'px';
+            
+            glow.style.left = glowX + 'px';
+            glow.style.top = glowY + 'px';
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // Start animation loop
+        animate();
+
+        // Hover effects
+        hoverTargets.forEach(target => {
+            target.addEventListener('mouseenter', () => {
+                outline.classList.add('hovering');
+                dot.classList.add('hovering');
+            });
+            target.addEventListener('mouseleave', () => {
+                outline.classList.remove('hovering');
+                dot.classList.remove('hovering');
+            });
+        });
+    </script>
+  <script src="/js/cursor.js"></script>
+</body>
+</html>
