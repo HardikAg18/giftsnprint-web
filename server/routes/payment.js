@@ -95,7 +95,6 @@ router.post('/create-order', async (req, res) => {
         });
         
         // Save pending order in DB
-        const orderId = `GNP-${Date.now()}`;
         await db.execute(
             `INSERT INTO orders (order_id, customer_name, customer_email, customer_phone, customer_company, shipping_address, city, state, pincode, items, subtotal, gst_amount, shipping_amount, discount_amount, total_amount, razorpay_order_id)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
