@@ -11,13 +11,17 @@ async function initCheckout() {
   const cart = getCart();
   if (!cart.length) { window.location.href = '/cart.html'; return; }
 
-  // Populate order summary
-  const summaryEl = document.getElementById('orderSummary');
-  if (summaryEl) {
+  let appliedDiscount = 0;
+
+  function renderSummary() {
+    const summaryEl = document.getElementById('orderSummary');
+    if (!summaryEl) return;
+    
     const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
     const gst = Math.round(subtotal * 0.18);
     const shipping = subtotal >= 1000 ? 0 : 99;
-    const total = subtotal + gst + shipping;
+    let total = subtotal + gst + shipping - appliedDiscount;
+    if (total < 0) total = 0;
 
     summaryEl.innerHTML = `
       ${cart.map(i => `
@@ -29,9 +33,57 @@ async function initCheckout() {
       <div class="summary-item"><span>Subtotal</span><span>₹${subtotal.toLocaleString('en-IN')}</span></div>
       <div class="summary-item"><span>GST (18%)</span><span>₹${gst.toLocaleString('en-IN')}</span></div>
       <div class="summary-item"><span>Shipping</span><span>${shipping === 0 ? 'FREE 🎉' : '₹' + shipping}</span></div>
+      ${appliedDiscount > 0 ? `<div class="summary-item" style="color:var(--green)"><span>Discount</span><span>-₹${appliedDiscount.toLocaleString('en-IN')}</span></div>` : ''}
       <div class="summary-total"><span>Total</span><span>₹${total.toLocaleString('en-IN')}</span></div>
     `;
     document.getElementById('hiddenTotal').value = total;
+  }
+
+  renderSummary();
+
+  const applyPromoBtn = document.getElementById('applyPromoBtn');
+  if (applyPromoBtn) {
+    applyPromoBtn.addEventListener('click', async () => {
+      const code = document.getElementById('promoCodeInput').value.trim().toUpperCase();
+      const msgEl = document.getElementById('promoMessage');
+      if (!code) return;
+      
+      try {
+        applyPromoBtn.disabled = true;
+        applyPromoBtn.textContent = '...';
+        const res = await fetch(`/api/coupons/validate/${code}`);
+        const data = await res.json();
+        
+        if (data.success) {
+          const c = data.data;
+          const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+          if (subtotal < c.min_order_amount) {
+            msgEl.style.display = 'block';
+            msgEl.style.color = 'var(--red)';
+            msgEl.textContent = `Minimum order amount for this coupon is ₹${c.min_order_amount}`;
+            appliedDiscount = 0;
+          } else {
+            if (c.discount_type === 'percentage') {
+              appliedDiscount = Math.round(subtotal * (c.discount_value / 100));
+            } else {
+              appliedDiscount = parseFloat(c.discount_value);
+            }
+            msgEl.style.display = 'block';
+            msgEl.style.color = 'var(--green)';
+            msgEl.textContent = `Promocode applied successfully!`;
+          }
+          renderSummary();
+        } else {
+          msgEl.style.display = 'block';
+          msgEl.style.color = 'var(--red)';
+          msgEl.textContent = data.message;
+          appliedDiscount = 0;
+          renderSummary();
+        }
+      } catch(e) {}
+      applyPromoBtn.disabled = false;
+      applyPromoBtn.textContent = 'Apply';
+    });
   }
 
   form.addEventListener('submit', async (e) => {

@@ -25,6 +25,18 @@ router.get('/active', auth, async (req, res) => {
     }
 });
 
+// GET /api/coupons/validate/:code - Validate coupon (public)
+router.get('/validate/:code', async (req, res) => {
+    try {
+        const [rows] = await db.execute('SELECT id, code, discount_type, discount_value, min_order_amount FROM coupons WHERE code = ? AND is_active = true', [req.params.code]);
+        if (rows.length === 0) return res.json({ success: false, message: 'Invalid or inactive promocode.' });
+        res.json({ success: true, data: rows[0] });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
 // POST /api/coupons - Create coupon (admin)
 router.post('/', auth, async (req, res) => {
     try {

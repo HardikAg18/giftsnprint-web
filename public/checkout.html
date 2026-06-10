@@ -41,9 +41,18 @@
         </div>
       </div>
       <!-- Order Summary -->
-      <div id="orderSummary" class="animate-fadeUp delay-2" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;position:sticky;top:100px">
+      <div id="orderSummaryWrapper" class="animate-fadeUp delay-2" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;position:sticky;top:100px">
         <h3 style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;margin-bottom:16px">Order Summary</h3>
-        <div class="loader"><div class="spinner"></div></div>
+        <div id="orderSummary" class="loader"><div class="spinner"></div></div>
+        
+        <!-- Promo Code Section -->
+        <div style="margin-top:20px;padding-top:20px;border-top:1px dashed var(--border)">
+          <div style="display:flex;gap:8px">
+            <input type="text" id="promoCodeInput" class="form-control" placeholder="Enter Promocode" style="text-transform:uppercase">
+            <button type="button" id="applyPromoBtn" class="btn btn-outline">Apply</button>
+          </div>
+          <div id="promoMessage" style="font-size:13px;margin-top:8px;display:none;font-weight:600;"></div>
+        </div>
       </div>
     </div>
   </div>
