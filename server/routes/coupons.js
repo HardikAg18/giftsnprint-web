@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
-const { auth } = require('../middleware/auth');
+const auth = require('../middleware/auth');
 
 // GET /api/coupons - List all coupons (admin)
 router.get('/', auth, async (req, res) => {
