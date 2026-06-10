@@ -159,6 +159,9 @@ router.post('/', auth, async (req, res) => {
         res.json({ success: true, message: 'Product created.', productId });
     } catch (error) {
         console.error(error);
+        if (error.code === '23505' || error.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({ success: false, message: 'A product with this name already exists. Please choose a different name.' });
+        }
         res.status(500).json({ success: false, message: 'Server error.' });
     }
 });
@@ -187,6 +190,10 @@ router.put('/:id', auth, async (req, res) => {
         }
         res.json({ success: true, message: 'Product updated.' });
     } catch (error) {
+        console.error(error);
+        if (error.code === '23505' || error.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({ success: false, message: 'A product with this name already exists. Please choose a different name.' });
+        }
         res.status(500).json({ success: false, message: 'Server error.' });
     }
 });
