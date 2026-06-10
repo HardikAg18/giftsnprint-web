@@ -98,10 +98,17 @@
           <textarea id="customizationNote" class="form-control" rows="2" placeholder="Describe your design, color preferences, artwork details..."></textarea>
         </div>
 
-        <div class="product-actions">
-          <button id="addToCartBtn" class="btn btn-primary btn-lg"><i class="fas fa-cart-plus"></i> Add to Cart</button>
-          <button id="quoteBtn" class="btn btn-accent btn-lg"><i class="fas fa-file-invoice"></i> Get Quote</button>
-          <button onclick="openWhatsApp('I am interested in ordering this product. Please help me.')" class="btn btn-outline btn-lg"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+        <div id="expressNotice" style="display:none;margin-bottom:24px;padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:14px;color:var(--text-muted)"><i class="fas fa-truck-fast" style="color:var(--accent);margin-right:8px"></i> This is an Express product. Same day dispatch!</div>
+
+        <div class="product-actions" style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;gap:12px;width:100%">
+            <button id="buyNowBtn" class="btn btn-accent btn-lg" style="flex:1;justify-content:center"><i class="fas fa-bolt"></i> Buy Now</button>
+            <button id="addToCartBtn" class="btn btn-primary btn-lg" style="flex:1;justify-content:center"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+          </div>
+          <div style="display:flex;gap:12px;width:100%">
+            <button id="quoteBtn" class="btn btn-outline btn-lg" style="flex:1;justify-content:center"><i class="fas fa-file-invoice"></i> Request Bulk Quote</button>
+            <button onclick="openWhatsApp('I am interested in ordering this product. Please help me.')" class="btn btn-outline btn-lg" style="flex:1;justify-content:center"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+          </div>
         </div>
 
         <div style="display:flex;gap:16px;margin-top:20px;flex-wrap:wrap">

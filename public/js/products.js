@@ -244,6 +244,15 @@ async function loadProductDetail() {
       addToCart({ id: p.id, name: p.name, price: window.currentCalculatedPrice || p.base_price, qty, image: p.image_url, slug: p.slug, customization });
     });
 
+    // Buy Now
+    const buyNowBtn = document.getElementById('buyNowBtn');
+    buyNowBtn?.addEventListener('click', () => {
+      const qty = parseInt(qtyInput.value);
+      const customization = document.getElementById('customizationNote')?.value || '';
+      addToCart({ id: p.id, name: p.name, price: window.currentCalculatedPrice || p.base_price, qty, image: p.image_url, slug: p.slug, customization });
+      window.location.href = '/checkout.html';
+    });
+
     // Quote
     const quoteBtn = document.getElementById('quoteBtn');
     quoteBtn?.addEventListener('click', () => {
