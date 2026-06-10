@@ -69,12 +69,14 @@
           </div>
         </div>
 
-        <!-- Quantity Dropdown -->
+        <!-- Quantity Selector -->
         <div style="margin-bottom:24px">
-          <label class="form-label">Quantity</label>
-          <select id="qtySelect" class="form-control" style="font-size:16px;font-weight:600;padding:12px;width:100%;background-color:var(--surface2);">
-            <option value="25">Loading quantities...</option>
-          </select>
+          <label class="form-label" style="display:flex;justify-content:space-between;align-items:flex-end">Quantity <span id="unitPriceDisplay" style="color:var(--text-muted);font-weight:400;font-size:13px"></span></label>
+          <div style="display:flex;align-items:center;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;width:fit-content;background:var(--surface2)">
+            <button type="button" id="qtyMinus" style="border:none;border-right:1px solid var(--border);background:transparent;padding:12px 16px;cursor:pointer;color:var(--text)"><i class="fas fa-minus"></i></button>
+            <input type="number" id="qtyInput" value="1" min="1" style="border:none;background:transparent;text-align:center;width:70px;font-size:16px;font-weight:600;outline:none;color:var(--text)">
+            <button type="button" id="qtyPlus" style="border:none;border-left:1px solid var(--border);background:transparent;padding:12px 16px;cursor:pointer;color:var(--text)"><i class="fas fa-plus"></i></button>
+          </div>
         </div>
 
         <!-- Total Price -->
