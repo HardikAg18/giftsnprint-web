@@ -64,6 +64,17 @@
       </div>
       <div class="form-group"><label class="form-label">Tags (comma separated)</label><input type="text" name="tags" class="form-control" placeholder="t-shirt, printing, custom"></div>
       
+      <div class="form-group" style="background:var(--surface2);padding:16px;border-radius:12px;border:1px solid var(--border);margin-bottom:16px">
+        <label class="form-label" style="display:flex;justify-content:space-between;align-items:center">
+          <span>Product Media Gallery (Images, Videos, PDFs)</span>
+          <button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById('galleryUpload').click()"><i class="fas fa-upload"></i> Add Media</button>
+        </label>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Upload additional images, videos, or spec sheets/brochures.</p>
+        <input type="file" id="galleryUpload" accept="image/*,video/*,.pdf" style="display:none" multiple onchange="uploadToGallery(this)">
+        <div id="galleryStatus" style="font-size:12px;margin-bottom:8px;font-weight:600"></div>
+        <div id="galleryContainer" style="display:flex;gap:12px;flex-wrap:wrap;"></div>
+      </div>
+
       <div class="form-group" style="background:var(--surface2);padding:16px;border-radius:12px;border:1px solid var(--border)">
         <label class="form-label" style="display:flex;justify-content:space-between;align-items:center">
           <span>Bulk Pricing Tiers</span>
@@ -88,6 +99,65 @@
 
 <script src="/admin/js/admin.js"></script>
 <script>
+window.currentGallery = [];
+
+function renderGallery() {
+  const container = document.getElementById('galleryContainer');
+  container.innerHTML = '';
+  window.currentGallery.forEach((item, index) => {
+    let preview = '';
+    if (item.resource_type === 'image') preview = `<img src="${item.url}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
+    else if (item.resource_type === 'video') preview = `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#000;color:#fff;border-radius:8px"><i class="fas fa-video fa-2x"></i></div>`;
+    else preview = `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#ef4444;color:#fff;border-radius:8px"><i class="fas fa-file-pdf fa-2x"></i></div>`;
+    
+    container.innerHTML += `
+      <div style="position:relative;width:80px;height:80px;border:1px solid var(--border);border-radius:8px">
+        ${preview}
+        <button type="button" onclick="removeGalleryItem(${index})" style="position:absolute;top:-6px;right:-6px;background:var(--danger, red);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px"><i class="fas fa-times"></i></button>
+      </div>
+    `;
+  });
+}
+
+function removeGalleryItem(index) {
+  window.currentGallery.splice(index, 1);
+  renderGallery();
+}
+
+async function uploadToGallery(input) {
+  if (!input.files || input.files.length === 0) return;
+  const status = document.getElementById('galleryStatus');
+  
+  for (let i = 0; i < input.files.length; i++) {
+    const file = input.files[i];
+    status.textContent = `Uploading ${file.name}...`;
+    status.style.color = 'var(--primary)';
+    
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    try {
+      const res = await fetch('/api/products/upload-image', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + localStorage.getItem('gnp_admin_token') },
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success) {
+        window.currentGallery.push({ url: data.url, resource_type: data.resource_type || 'image', name: file.name });
+      } else {
+        alert('Failed to upload ' + file.name + ': ' + data.message);
+      }
+    } catch (error) {
+      alert('Network error uploading ' + file.name);
+    }
+  }
+  
+  status.textContent = '';
+  input.value = '';
+  renderGallery();
+}
+
 async function uploadToCloudinary(input) {
   if (!input.files || input.files.length === 0) return;
   const status = document.getElementById('uploadStatus');
@@ -143,6 +213,7 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
     unit_type: form.unit_type.value,
     tags: form.tags.value,
     image_url: form.image_url.value,
+    gallery_images: window.currentGallery,
     is_featured: form.is_featured.checked ? 1 : 0
   };
 
@@ -193,6 +264,8 @@ window.openAddProduct = function() {
   document.getElementById('addProductForm').reset();
   document.getElementById('pricingTiersContainer').innerHTML = '';
   document.getElementById('customOptionsContainer').innerHTML = '';
+  window.currentGallery = [];
+  renderGallery();
   document.querySelector('#addProductModal h3').textContent = 'Add New Product';
   document.querySelector('#addProductForm button[type="submit"]').innerHTML = '<i class="fas fa-plus"></i> Add Product';
   openModal('addProductModal');
@@ -214,6 +287,11 @@ window.editProduct = async function(p) {
   form.image_url.value = p.image_url || '';
   form.tags.value = p.tags || '';
   form.is_featured.checked = p.is_featured;
+  
+  try {
+    window.currentGallery = typeof p.gallery_images === 'string' ? JSON.parse(p.gallery_images) : (p.gallery_images || []);
+  } catch(e) { window.currentGallery = []; }
+  renderGallery();
 
   const tiersC = document.getElementById('pricingTiersContainer');
   tiersC.innerHTML = '';

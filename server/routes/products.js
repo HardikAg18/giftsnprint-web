@@ -108,15 +108,18 @@ router.post('/upload-image', auth, upload.single('image'), async (req, res) => {
         if (!req.file) return res.status(400).json({ success: false, message: 'No file provided.' });
         
         const uploadStream = cloudinary.uploader.upload_stream(
-            { folder: 'giftsnprint_products' },
+            { folder: 'giftsnprint_products', resource_type: 'auto' },
             (error, result) => {
                 if (error) return res.status(500).json({ success: false, message: 'Cloudinary upload failed.' });
                 
-                const optimizedUrl = cloudinary.url(result.public_id, {
-                    fetch_format: 'auto',
-                    quality: 'auto'
-                });
-                res.json({ success: true, url: optimizedUrl });
+                let optimizedUrl = result.secure_url;
+                if (result.resource_type === 'image') {
+                    optimizedUrl = cloudinary.url(result.public_id, { fetch_format: 'auto', quality: 'auto' });
+                } else if (result.resource_type === 'video') {
+                    optimizedUrl = cloudinary.url(result.public_id, { resource_type: 'video', fetch_format: 'auto', quality: 'auto' });
+                }
+                
+                res.json({ success: true, url: optimizedUrl, resource_type: result.resource_type });
             }
         );
         uploadStream.end(req.file.buffer);
@@ -128,12 +131,12 @@ router.post('/upload-image', auth, upload.single('image'), async (req, res) => {
 // POST /api/products - Create product
 router.post('/', auth, async (req, res) => {
     try {
-        const { category_id, name, short_description, description, base_price, min_order_qty, unit_type, tags, is_featured, image_url, pricing_tiers, custom_options } = req.body;
+        const { category_id, name, short_description, description, base_price, min_order_qty, unit_type, tags, is_featured, image_url, gallery_images, pricing_tiers, custom_options } = req.body;
         const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         
         const [result] = await db.execute(
-            'INSERT INTO products (category_id, name, slug, short_description, description, base_price, min_order_qty, unit_type, image_url, tags, is_featured, custom_options) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [category_id, name, slug, short_description, description, base_price, min_order_qty || 1, unit_type || 'pcs', image_url || null, tags, is_featured ? 1 : 0, custom_options || null]
+            'INSERT INTO products (category_id, name, slug, short_description, description, base_price, min_order_qty, unit_type, image_url, gallery_images, tags, is_featured, custom_options) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [category_id, name, slug, short_description, description, base_price, min_order_qty || 1, unit_type || 'pcs', image_url || null, gallery_images ? JSON.stringify(gallery_images) : null, tags, is_featured ? 1 : 0, custom_options || null]
         );
         
         const productId = result.insertId;
@@ -156,9 +159,10 @@ router.post('/', auth, async (req, res) => {
 // PUT /api/products/:id - Update product
 router.put('/:id', auth, async (req, res) => {
     try {
-        const { category_id, name, short_description, description, base_price, min_order_qty, unit_type, tags, is_featured, is_active, image_url, pricing_tiers, custom_options } = req.body;
+        const { category_id, name, short_description, description, base_price, min_order_qty, unit_type, tags, is_featured, is_active, image_url, gallery_images, pricing_tiers, custom_options } = req.body;
         const updates = { category_id, name, short_description, description, base_price, min_order_qty, unit_type: unit_type || 'pcs', tags, is_featured: is_featured ? 1 : 0, is_active: is_active ? 1 : 0 };
         if (image_url) updates.image_url = image_url;
+        if (gallery_images !== undefined) updates.gallery_images = gallery_images ? JSON.stringify(gallery_images) : null;
         if (custom_options !== undefined) updates.custom_options = custom_options || null;
         
         const fields = Object.keys(updates).map(k => `${k} = ?`).join(', ');

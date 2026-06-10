@@ -117,7 +117,36 @@ async function loadProductDetail() {
     document.getElementById('minQtyHint').textContent = `Minimum order: ${p.min_order_qty || 1} ${p.unit_type || 'pcs'}`;
 
     const img = document.getElementById('productImage');
+    const vid = document.getElementById('productVideo');
     if (img) { img.src = p.image_url || '/images/hero_banner.png'; img.alt = p.name; }
+
+    // Setup Gallery
+    let gallery = [];
+    try { gallery = typeof p.gallery_images === 'string' ? JSON.parse(p.gallery_images) : (p.gallery_images || []); } catch(e){}
+    
+    if (p.image_url && !gallery.find(g => g.url === p.image_url)) {
+      gallery.unshift({ url: p.image_url, resource_type: 'image' });
+    }
+
+    const galContainer = document.getElementById('mediaGallery');
+    const pdfContainer = document.getElementById('pdfDownloadsContainer');
+    
+    if (galContainer && gallery.length > 0) {
+      let galHTML = '';
+      let pdfHTML = '';
+      
+      gallery.forEach((item, idx) => {
+        if (item.resource_type === 'image') {
+          galHTML += `<img src="${item.url}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid ${idx===0?'var(--accent)':'transparent'}" onclick="setMainMedia('${item.url}', 'image', this)">`;
+        } else if (item.resource_type === 'video') {
+          galHTML += `<div style="width:70px;height:70px;background:#000;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;border:2px solid transparent" onclick="setMainMedia('${item.url}', 'video', this)"><i class="fas fa-play"></i></div>`;
+        } else if (item.resource_type === 'raw') {
+          pdfHTML += `<a href="${item.url}" target="_blank" class="btn btn-outline" style="width:100%;justify-content:center;border-color:var(--primary);color:var(--text)"><i class="fas fa-file-pdf" style="color:#ef4444"></i> Download ${item.name || 'Spec Sheet'}</a>`;
+        }
+      });
+      galContainer.innerHTML = galHTML;
+      if (pdfContainer) pdfContainer.innerHTML = pdfHTML;
+    }
 
     // Breadcrumb
     const bc = document.getElementById('productBreadcrumb');
@@ -265,6 +294,28 @@ ps.textContent = `
 document.head.appendChild(ps);
 
 document.addEventListener('DOMContentLoaded', () => {
-  initFilters();
+  if (typeof initFilters === 'function') initFilters();
+  if (typeof loadProducts === 'function') loadProducts();
   loadProductDetail();
 });
+
+window.setMainMedia = function(url, type, el) {
+  const img = document.getElementById('productImage');
+  const vid = document.getElementById('productVideo');
+  if (type === 'image') {
+    img.src = url;
+    img.style.display = 'block';
+    if(vid) { vid.style.display = 'none'; vid.pause(); }
+  } else if (type === 'video') {
+    if(vid) {
+      vid.src = url;
+      vid.style.display = 'block';
+      vid.play();
+    }
+    img.style.display = 'none';
+  }
+  // Reset borders
+  const siblings = el.parentElement.children;
+  for(let i=0; i<siblings.length; i++) siblings[i].style.borderColor = 'transparent';
+  el.style.borderColor = 'var(--accent)';
+};
