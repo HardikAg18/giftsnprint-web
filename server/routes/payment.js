@@ -3,6 +3,8 @@ const router = express.Router();
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const db = require('../config/database');
+const { sendEmail } = require('../services/email');
+const { pushOrderToDelhivery } = require('../services/delhivery');
 const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
@@ -21,9 +23,13 @@ router.post('/create-order', async (req, res) => {
         
         // Calculate totals
         let subtotal = 0;
+        let gst = 0;
         for (const item of items) {
-            subtotal += item.price * item.quantity;
+            const itemTotal = item.price * item.qty;
+            subtotal += itemTotal;
+            gst += itemTotal * (parseFloat(item.gst_percent) || 18) / 100;
         }
+        gst = Math.round(gst);
         
         let discount = 0;
         if (coupon_code) {
@@ -38,10 +44,43 @@ router.post('/create-order', async (req, res) => {
                     : coupon.discount_value;
             }
         }
-        
-        const gst = Math.round((subtotal - discount) * 0.18);
         const shipping = subtotal >= 2000 ? 0 : 150;
-        const total = Math.round(subtotal - discount + gst + shipping);
+        const total = subtotal + gst + shipping - discount;
+        
+        const isCOD = req.body.payment_method === 'cod';
+
+        const orderId = `GNP-${Date.now()}`;
+        
+        if (isCOD) {
+            await db.execute(
+                `INSERT INTO orders (order_id, customer_name, customer_email, customer_phone, customer_company, shipping_address, city, state, pincode, items, subtotal, gst_amount, shipping_amount, discount_amount, total_amount, payment_method, payment_status, order_status)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'cod', 'pending', 'confirmed')`,
+                [orderId, customer.name, customer.email, customer.phone, customer.company || null,
+                 shipping_address.address, shipping_address.city, shipping_address.state, shipping_address.pincode,
+                 JSON.stringify(items), subtotal, gst, shipping, discount, total]
+            );
+
+            // Fetch AWB from Delhivery
+            const awb = await pushOrderToDelhivery({
+                order_id: orderId,
+                customer_name: customer.name,
+                customer_phone: customer.phone,
+                shipping_address: shipping_address.address,
+                pincode: shipping_address.pincode,
+                payment_method: 'cod',
+                total_amount: total
+            });
+
+            if (awb) {
+                await db.execute('UPDATE orders SET tracking_id = ? WHERE order_id = ?', [awb, orderId]);
+            }
+
+            // Send Confirmation Email
+            const emailHtml = `<h2>Order Confirmed!</h2><p>Your Cash on Delivery order <b>${orderId}</b> for ₹${total} has been confirmed. Tracking AWB: ${awb || 'Pending'}.</p>`;
+            await sendEmail({ to: customer.email, subject: `Order Confirmation - ${orderId}`, html: emailHtml });
+
+            return res.json({ success: true, order_id: orderId, payment_method: 'cod' });
+        }
         
         // Create Razorpay order
         if (!razorpay) {
@@ -99,7 +138,29 @@ router.post('/verify', async (req, res) => {
         );
         
         // Update coupon usage if used
-        // Send confirmation email (handled by contact route)
+        
+        // Fetch AWB from Delhivery
+        const [orders] = await db.execute('SELECT * FROM orders WHERE order_id = ?', [order_id]);
+        if (orders.length > 0) {
+            const ord = orders[0];
+            const awb = await pushOrderToDelhivery({
+                order_id: ord.order_id,
+                customer_name: ord.customer_name,
+                customer_phone: ord.customer_phone,
+                shipping_address: ord.shipping_address,
+                pincode: ord.pincode,
+                payment_method: 'online',
+                total_amount: ord.total_amount
+            });
+
+            if (awb) {
+                await db.execute('UPDATE orders SET tracking_id = ? WHERE order_id = ?', [awb, order_id]);
+            }
+
+            // Send confirmation email
+            const emailHtml = `<h2>Payment Successful!</h2><p>Your order <b>${order_id}</b> has been paid. Tracking AWB: ${awb || 'Pending'}.</p>`;
+            await sendEmail({ to: ord.customer_email, subject: `Order Payment Successful - ${order_id}`, html: emailHtml });
+        }
         
         res.json({ success: true, message: 'Payment verified successfully.', order_id });
     } catch (error) {

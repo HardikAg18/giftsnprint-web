@@ -115,10 +115,13 @@ const counterObserver = new IntersectionObserver((entries) => {
 document.querySelectorAll('[data-target]').forEach(el => counterObserver.observe(el));
 
 /* ── Add to cart helper ── */
-window.addToCart = function(product) {
+window.addToCart = function(product, overrideQty = false) {
   let cart = JSON.parse(localStorage.getItem('gnp_cart') || '[]');
   const idx = cart.findIndex(i => i.id === product.id && i.customization === product.customization);
-  if (idx > -1) cart[idx].qty += product.qty;
+  if (idx > -1) {
+    if (overrideQty) cart[idx].qty = product.qty;
+    else cart[idx].qty += product.qty;
+  }
   else cart.push(product);
   localStorage.setItem('gnp_cart', JSON.stringify(cart));
   updateCartBadge();

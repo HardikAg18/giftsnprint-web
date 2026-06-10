@@ -5,6 +5,11 @@ const CART_KEY = 'gnp_cart';
 function getCart() { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); }
 
 async function initCheckout() {
+  if (!localStorage.getItem('gnp_customer_token')) {
+    window.location.href = '/login.html?redirect=/checkout.html';
+    return;
+  }
+  
   const form = document.getElementById('checkoutForm');
   if (!form) return;
 
@@ -12,6 +17,22 @@ async function initCheckout() {
   if (!cart.length) { window.location.href = '/cart.html'; return; }
 
   let appliedDiscount = 0;
+
+window.updateCheckoutCart = function(index, delta) {
+    const newQty = cart[index].qty + delta;
+    if (newQty <= 0) {
+      cart.splice(index, 1);
+    } else {
+      cart[index].qty = newQty;
+    }
+    localStorage.setItem('gnp_cart', JSON.stringify(cart));
+    if (cart.length === 0) {
+      window.location.href = '/cart.html';
+    } else {
+      renderSummary();
+      updateCartBadge(); // from main.js if accessible
+    }
+  };
 
   function renderSummary() {
     const summaryEl = document.getElementById('orderSummary');
@@ -25,10 +46,18 @@ async function initCheckout() {
 
     summaryEl.classList.remove('loader');
     summaryEl.innerHTML = `
-      ${cart.map(i => `
-        <div class="summary-item">
-          <span>${i.name} × ${i.qty}</span>
-          <span>₹${(i.price * i.qty).toLocaleString('en-IN')}</span>
+      ${cart.map((i, index) => `
+        <div class="summary-item" style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; justify-content:space-between; width:100%;">
+            <span>${i.name}</span>
+            <span>₹${(i.price * i.qty).toLocaleString('en-IN')}</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; font-size:14px;">
+            <button onclick="updateCheckoutCart(${index}, -1)" style="border:1px solid var(--border); background:var(--surface); padding:2px 8px; border-radius:4px; cursor:pointer;">-</button>
+            <span>${i.qty}</span>
+            <button onclick="updateCheckoutCart(${index}, 1)" style="border:1px solid var(--border); background:var(--surface); padding:2px 8px; border-radius:4px; cursor:pointer;">+</button>
+            <button onclick="updateCheckoutCart(${index}, -${i.qty})" style="color:var(--error); background:none; border:none; font-size:12px; cursor:pointer; margin-left:10px;"><i class="ri-delete-bin-line"></i> Remove</button>
+          </div>
         </div>`).join('')}
       <div class="summary-divider"></div>
       <div class="summary-item"><span>Subtotal</span><span>₹${subtotal.toLocaleString('en-IN')}</span></div>
@@ -103,31 +132,42 @@ async function initCheckout() {
 
     try {
       // Create order on backend
-      const orderRes = await fetch(`${API_BASE}/payment/create-order`, {
+      const res = await fetch(`${API_BASE}/payment/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: total,
-          customer_name: customerName,
-          customer_email: customerEmail,
-          customer_phone: customerPhone,
-          shipping_address: address,
-          items: cart
-        })
+        customer: { name: document.getElementById('checkoutName').value, email: document.getElementById('checkoutEmail').value, phone: document.getElementById('checkoutPhone').value },
+        shipping_address: { address: document.getElementById('checkoutAddress').value, city: 'Local', state: 'Local', pincode: '000000' },
+        items: cart,
+        discount: appliedDiscount,
+        coupon_code: currentPromoCode,
+        payment_method: document.getElementById('paymentMethod').value
+      })
       });
-      const orderData = await orderRes.json();
-      if (!orderData.success) throw new Error(orderData.message);
+
+      const resData = await res.json();
+      if (!resData.success) {
+        showToast(resData.message || 'Payment initiation failed', 'error');
+        btn.disabled = false; btn.innerHTML = '<i class="fas fa-lock"></i> Pay Securely with Razorpay';
+        return;
+      }
+
+      if (resData.payment_method === 'cod') {
+        localStorage.removeItem('gnp_cart');
+        window.location.href = `/order-success.html?order=${resData.order_id}`;
+        return;
+      }
 
       // Open Razorpay
       const options = {
-        key: orderData.key,
-        amount: orderData.amount,
+        key: resData.key,
+        amount: resData.amount,
         currency: 'INR',
         name: 'GiftsNPrint',
         description: 'Custom Printing Order',
         image: '/images/hero_banner.png',
-        order_id: orderData.razorpay_order_id,
-        prefill: { name: customerName, email: customerEmail, contact: customerPhone },
+        order_id: resData.razorpay_order_id,
+        prefill: { name: document.getElementById('checkoutName').value, email: document.getElementById('checkoutEmail').value, contact: document.getElementById('checkoutPhone').value },
         theme: { color: '#7C3AED' },
         handler: async function(response) {
           // Verify payment
@@ -139,13 +179,13 @@ async function initCheckout() {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
-                order_id: orderData.order_id
+                order_id: resData.order_id
               })
             });
             const verifyData = await verifyRes.json();
             if (verifyData.success) {
               localStorage.removeItem(CART_KEY);
-              window.location.href = `/order-success.html?order=${orderData.order_id}`;
+              window.location.href = `/order-success.html?order=${resData.order_id}`;
             } else {
               showToast('Payment verification failed. Contact support.', 'error');
               btn.disabled = false;

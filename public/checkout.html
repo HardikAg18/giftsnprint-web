@@ -27,6 +27,12 @@
             <div class="form-group"><label class="form-label">Email Address *</label><input type="email" name="email" id="checkoutEmail" class="form-control" placeholder="you@email.com" required></div>
             <div class="form-group"><label class="form-label">Delivery Address *</label><textarea name="address" id="checkoutAddress" class="form-control" rows="3" placeholder="Full delivery address with pincode" required></textarea></div>
             <div class="form-group"><label class="form-label">Customization / Order Notes</label><textarea name="notes" id="checkoutNotes" class="form-control" rows="2" placeholder="Design details, special instructions..."></textarea></div>
+            <div class="form-group"><label class="form-label">Payment Method *</label>
+              <select name="payment_method" id="paymentMethod" class="form-control" required onchange="document.getElementById('payBtn').innerHTML = this.value === 'cod' ? '<i class=\\'fas fa-truck\\'></i> Place COD Order' : '<i class=\\'fas fa-lock\\'></i> Pay Securely with Razorpay'">
+                <option value="online">Pay Online (Razorpay)</option>
+                <option value="cod">Cash on Delivery (COD)</option>
+              </select>
+            </div>
             <input type="hidden" id="hiddenTotal" value="0">
             <button type="submit" id="payBtn" class="btn btn-primary btn-lg" style="width:100%;margin-top:8px"><i class="fas fa-lock"></i> Pay Securely with Razorpay</button>
           </form>

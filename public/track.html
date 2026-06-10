@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Order | GiftsNPrint</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .track-container { max-width: 600px; margin: 100px auto; padding: 32px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+        .form-control { width: 100%; padding: 16px; font-size: 16px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 16px; }
+        .btn-primary { width: 100%; padding: 16px; font-size: 16px; font-weight: bold; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; }
+        .tracking-result { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); display: none; }
+        .tracking-step { display: flex; align-items: flex-start; margin-bottom: 24px; position: relative; }
+        .tracking-step::before { content: ''; position: absolute; left: 15px; top: 30px; bottom: -30px; width: 2px; background: var(--border); z-index: 1; }
+        .tracking-step:last-child::before { display: none; }
+        .step-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; margin-right: 16px; z-index: 2; color: var(--text-muted); }
+        .step-active .step-icon { border-color: var(--primary); background: var(--primary); color: white; }
+        .step-active ~ .tracking-step::before { background: var(--primary); } /* Quick hack, normally requires complex logic */
+    </style>
+</head>
+<body>
+    <!-- Navbar placeholder (use your actual navbar) -->
+    
+    <div class="track-container">
+        <h2 style="font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 700; margin-bottom: 8px; text-align: center;">Track Your Order</h2>
+        <p style="color: var(--text-muted); text-align: center; margin-bottom: 32px;">Enter your Order ID (e.g. GNP-123456789) to get real-time tracking updates.</p>
+        
+        <input type="text" id="orderIdInput" class="form-control" placeholder="GNP-123456789" style="text-transform: uppercase;">
+        <button class="btn-primary" onclick="trackOrder()" id="trackBtn">Track Order</button>
+
+        <div class="tracking-result" id="resultDiv">
+            <h3 style="margin-bottom: 16px; font-size: 20px;">Order <span id="resOrderId"></span></h3>
+            <div style="background: var(--bg); padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                <p><strong>Tracking AWB:</strong> <span id="resAwb" style="color: var(--primary); font-weight: 600;"></span></p>
+                <p><strong>Total Amount:</strong> ₹<span id="resAmount"></span></p>
+                <p><strong>Payment Status:</strong> <span id="resPayment"></span></p>
+            </div>
+            
+            <h4 style="margin-bottom: 16px;">Delivery Status: <span id="resStatus" style="color: var(--primary); text-transform: capitalize;"></span></h4>
+            
+            <div id="timeline">
+                <!-- Status steps will be injected here -->
+            </div>
+            
+            <div style="margin-top: 24px; text-align: center;">
+                <a id="delhiveryLink" href="#" target="_blank" class="btn btn-outline" style="display: none; width: auto; padding: 8px 16px; border-radius: 50px;">Track directly on Delhivery <i class="ri-external-link-line"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function trackOrder() {
+            const input = document.getElementById('orderIdInput').value.trim();
+            const btn = document.getElementById('trackBtn');
+            const resDiv = document.getElementById('resultDiv');
+            
+            if(!input) return alert('Please enter Order ID');
+            
+            btn.textContent = 'Tracking...';
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch(`/api/track/${input}`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    const ord = data.data;
+                    document.getElementById('resOrderId').textContent = ord.order_id;
+                    document.getElementById('resAwb').textContent = ord.tracking_info || ord.tracking_id || 'Processing...';
+                    document.getElementById('resAmount').textContent = ord.total_amount;
+                    document.getElementById('resPayment').textContent = ord.payment_status;
+                    document.getElementById('resStatus').textContent = ord.order_status;
+                    
+                    if(ord.tracking_info || ord.tracking_id) {
+                        const awb = ord.tracking_info || ord.tracking_id;
+                        document.getElementById('delhiveryLink').href = `https://www.delhivery.com/track/package/${awb}`;
+                        document.getElementById('delhiveryLink').style.display = 'inline-block';
+                    } else {
+                        document.getElementById('delhiveryLink').style.display = 'none';
+                    }
+                    
+                    resDiv.style.display = 'block';
+                } else {
+                    alert(data.message || 'Order not found');
+                    resDiv.style.display = 'none';
+                }
+            } catch(e) {
+                alert('Server error. Please try again.');
+            }
+            
+            btn.textContent = 'Track Order';
+            btn.disabled = false;
+        }
+    </script>
+</body>
+</html>

@@ -249,7 +249,7 @@ async function loadProductDetail() {
     buyNowBtn?.addEventListener('click', () => {
       const qty = parseInt(qtyInput.value);
       const customization = document.getElementById('customizationNote')?.value || '';
-      addToCart({ id: p.id, name: p.name, price: window.currentCalculatedPrice || p.base_price, qty, image: p.image_url, slug: p.slug, customization, gst_percent: p.gst_percent });
+      addToCart({ id: p.id, name: p.name, price: window.currentCalculatedPrice || p.base_price, qty, image: p.image_url, slug: p.slug, customization, gst_percent: p.gst_percent }, true);
       window.location.href = '/checkout.html';
     });
 

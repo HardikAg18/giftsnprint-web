@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | GiftsNPrint</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .login-container { max-width: 400px; margin: 100px auto; padding: 32px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 500; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; }
+        .btn-primary { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2 style="font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 24px; text-align: center;">Welcome Back</h2>
+        
+        <div id="step1">
+            <p style="color: var(--text-muted); margin-bottom: 24px; text-align: center;">Enter your email to receive a One-Time Password.</p>
+            <div id="emailError" style="color: red; font-size: 14px; margin-bottom: 12px;" class="hidden"></div>
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" id="emailInput" class="form-control" placeholder="you@example.com" required>
+            </div>
+            <button class="btn-primary" id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
+        </div>
+
+        <div id="step2" class="hidden">
+            <p style="color: var(--text-muted); margin-bottom: 24px; text-align: center;">Enter the 6-digit OTP sent to your email.</p>
+            <div id="otpError" style="color: red; font-size: 14px; margin-bottom: 12px;" class="hidden"></div>
+            <div class="form-group">
+                <label class="form-label">Enter OTP</label>
+                <input type="text" id="otpInput" class="form-control" placeholder="123456" maxlength="6" required>
+            </div>
+            <button class="btn-primary" id="verifyOtpBtn" onclick="verifyOTP()">Verify & Login</button>
+            <div style="text-align: center; margin-top: 16px;">
+                <button onclick="document.getElementById('step2').classList.add('hidden'); document.getElementById('step1').classList.remove('hidden');" style="background: none; border: none; color: var(--primary); cursor: pointer;">Change Email</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function sendOTP() {
+            const email = document.getElementById('emailInput').value;
+            const btn = document.getElementById('sendOtpBtn');
+            const err = document.getElementById('emailError');
+            
+            if(!email) { err.textContent = 'Please enter email'; err.classList.remove('hidden'); return; }
+            err.classList.add('hidden');
+            
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+
+            try {
+                const res = await fetch('/api/customers/send-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    document.getElementById('step1').classList.add('hidden');
+                    document.getElementById('step2').classList.remove('hidden');
+                } else {
+                    err.textContent = data.message || 'Failed to send OTP';
+                    err.classList.remove('hidden');
+                }
+            } catch(e) {
+                err.textContent = 'Server error. Please try again.';
+                err.classList.remove('hidden');
+            }
+            
+            btn.disabled = false;
+            btn.textContent = 'Send OTP';
+        }
+
+        async function verifyOTP() {
+            const email = document.getElementById('emailInput').value;
+            const otp = document.getElementById('otpInput').value;
+            const btn = document.getElementById('verifyOtpBtn');
+            const err = document.getElementById('otpError');
+            
+            if(!otp) { err.textContent = 'Please enter OTP'; err.classList.remove('hidden'); return; }
+            err.classList.add('hidden');
+            
+            btn.disabled = true;
+            btn.textContent = 'Verifying...';
+
+            try {
+                const res = await fetch('/api/customers/verify-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, otp })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    localStorage.setItem('gnp_customer_token', data.token);
+                    localStorage.setItem('gnp_customer', JSON.stringify(data.customer));
+                    
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const redirect = urlParams.get('redirect') || '/';
+                    window.location.href = redirect;
+                } else {
+                    err.textContent = data.message || 'Invalid OTP';
+                    err.classList.remove('hidden');
+                }
+            } catch(e) {
+                err.textContent = 'Server error. Please try again.';
+                err.classList.remove('hidden');
+            }
+            
+            btn.disabled = false;
+            btn.textContent = 'Verify & Login';
+        }
+    </script>
+</body>
+</html>
