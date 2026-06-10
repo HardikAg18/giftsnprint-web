@@ -116,6 +116,26 @@ async function loadProductDetail() {
     document.getElementById('productOrders').textContent = p.total_orders || '100';
     document.getElementById('minQtyHint').textContent = `Minimum order: ${p.min_order_qty || 1} ${p.unit_type || 'pcs'}`;
 
+    if (p.offer) {
+      const oC = document.getElementById('availableOfferContainer');
+      if(oC) {
+        oC.style.display = 'block';
+        document.getElementById('offerCode').textContent = p.offer.code;
+        document.getElementById('offerDesc').textContent = p.offer.description || 'Apply code at checkout';
+        document.getElementById('offerDiscountBadge').textContent = p.offer.discount_type === 'percentage' ? p.offer.discount_value + '% OFF' : '₹' + p.offer.discount_value + ' OFF';
+      }
+    } else {
+      const oC = document.getElementById('availableOfferContainer');
+      if(oC) oC.style.display = 'none';
+    }
+
+    if (p.category_slug === 'express-collection') {
+      const dAction = document.getElementById('designActionsContainer');
+      const cNote = document.getElementById('customizationNoteContainer');
+      if (dAction) dAction.style.display = 'none';
+      if (cNote) cNote.style.display = 'none';
+    }
+
     const img = document.getElementById('productImage');
     const vid = document.getElementById('productVideo');
     if (img) { img.src = p.image_url || '/images/hero_banner.png'; img.alt = p.name; }
@@ -265,7 +285,36 @@ async function loadProductDetail() {
       const finalUnitPrice = (baseUnitPrice + modifiers) * areaMultiplier;
       window.currentCalculatedPrice = finalUnitPrice;
       
-      document.getElementById('productPrice').textContent = `₹${finalUnitPrice.toLocaleString('en-IN', {maximumFractionDigits:2})} / ${p.unit_type || 'pcs'}`;
+      document.getElementById('productPrice').textContent = `₹${finalUnitPrice.toLocaleString('en-IN', {maximumFractionDigits:2})} incl. GST`;
+      
+      const mrpEl = document.getElementById('productMrp');
+      const savEl = document.getElementById('productSavings');
+      const badgeEl = document.getElementById('productSavingsBadge');
+      
+      const mrpVal = parseFloat(p.mrp);
+      if (mrpVal && mrpVal > p.base_price) {
+        const mrpAdjusted = (mrpVal + modifiers) * areaMultiplier;
+        const discountAmt = mrpAdjusted - finalUnitPrice;
+        const discountPct = Math.round((discountAmt / mrpAdjusted) * 100);
+        
+        if (mrpEl) {
+          mrpEl.style.display = 'block';
+          mrpEl.textContent = `M.R.P: ₹${mrpAdjusted.toLocaleString('en-IN', {maximumFractionDigits:2})}`;
+        }
+        if (savEl) {
+          savEl.style.display = 'block';
+          savEl.textContent = `(${discountPct}% off)`;
+        }
+        if (badgeEl) {
+          badgeEl.style.display = 'block';
+          badgeEl.innerHTML = `<span style="font-size:14px">${discountPct}% savings</span> <span style="font-weight:400">included for business</span>`;
+        }
+      } else {
+        if (mrpEl) mrpEl.style.display = 'none';
+        if (savEl) savEl.style.display = 'none';
+        if (badgeEl) badgeEl.style.display = 'none';
+      }
+      
       const total = (finalUnitPrice * qty).toLocaleString('en-IN', { maximumFractionDigits: 2 });
       document.getElementById('totalPriceDisplay').textContent = `Total: ₹${total}`;
     }

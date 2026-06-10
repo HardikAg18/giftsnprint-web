@@ -94,6 +94,13 @@ router.get('/:slug', async (req, res) => {
             [product.category_id, product.id]
         );
         product.related_products = related;
+        // Fetch active offer if attached
+        if (product.offer_id) {
+            const [coupons] = await db.execute('SELECT code, description, discount_type, discount_value FROM coupons WHERE id = ? AND is_active = TRUE', [product.offer_id]);
+            if (coupons.length > 0) {
+                product.offer = coupons[0];
+            }
+        }
         
         res.json({ success: true, data: product });
     } catch (error) {
@@ -131,12 +138,12 @@ router.post('/upload-image', auth, upload.single('image'), async (req, res) => {
 // POST /api/products - Create product
 router.post('/', auth, async (req, res) => {
     try {
-        const { category_id, name, short_description, description, base_price, min_order_qty, unit_type, tags, is_featured, image_url, gallery_images, pricing_tiers, custom_options } = req.body;
+        const { category_id, name, short_description, description, base_price, mrp, min_order_qty, unit_type, tags, is_featured, image_url, gallery_images, pricing_tiers, custom_options, offer_id } = req.body;
         const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         
         const [result] = await db.execute(
-            'INSERT INTO products (category_id, name, slug, short_description, description, base_price, min_order_qty, unit_type, image_url, gallery_images, tags, is_featured, custom_options) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [category_id, name, slug, short_description, description, base_price, min_order_qty || 1, unit_type || 'pcs', image_url || null, gallery_images ? JSON.stringify(gallery_images) : null, tags, is_featured ? 1 : 0, custom_options || null]
+            'INSERT INTO products (category_id, name, slug, short_description, description, base_price, mrp, min_order_qty, unit_type, image_url, gallery_images, tags, is_featured, custom_options, offer_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [category_id, name, slug, short_description, description, base_price, mrp || null, min_order_qty || 1, unit_type || 'pcs', image_url || null, gallery_images ? JSON.stringify(gallery_images) : null, tags, is_featured ? 1 : 0, custom_options || null, offer_id || null]
         );
         
         const productId = result.insertId;
@@ -159,8 +166,8 @@ router.post('/', auth, async (req, res) => {
 // PUT /api/products/:id - Update product
 router.put('/:id', auth, async (req, res) => {
     try {
-        const { category_id, name, short_description, description, base_price, min_order_qty, unit_type, tags, is_featured, is_active, image_url, gallery_images, pricing_tiers, custom_options } = req.body;
-        const updates = { category_id, name, short_description, description, base_price, min_order_qty, unit_type: unit_type || 'pcs', tags, is_featured: is_featured ? 1 : 0, is_active: is_active ? 1 : 0 };
+        const { category_id, name, short_description, description, base_price, mrp, min_order_qty, unit_type, tags, is_featured, is_active, image_url, gallery_images, pricing_tiers, custom_options, offer_id } = req.body;
+        const updates = { category_id, name, short_description, description, base_price, mrp: mrp || null, min_order_qty, unit_type: unit_type || 'pcs', tags, is_featured: is_featured ? 1 : 0, is_active: is_active ? 1 : 0, offer_id: offer_id || null };
         if (image_url) updates.image_url = image_url;
         if (gallery_images !== undefined) updates.gallery_images = gallery_images ? JSON.stringify(gallery_images) : null;
         if (custom_options !== undefined) updates.custom_options = custom_options || null;

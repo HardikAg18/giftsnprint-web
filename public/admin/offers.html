@@ -1,0 +1,145 @@
+<!DOCTYPE html><html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Offers & Promocodes - GiftsNPrint Admin</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="/admin/css/admin.css"></head>
+<body>
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header"><div class="sidebar-logo">GiftsNPrint</div><div class="sidebar-sub">Admin Dashboard</div></div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Main</div>
+    <a href="/admin/index.html" class="nav-item" data-page="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="/admin/orders.html" class="nav-item" data-page="orders.html"><i class="fas fa-shopping-bag"></i> Orders <span class="nav-badge" id="pendingBadge">0</span></a>
+    <a href="/admin/products.html" class="nav-item" data-page="products.html"><i class="fas fa-box-open"></i> Products</a>
+    <a href="/admin/offers.html" class="nav-item active" data-page="offers.html"><i class="fas fa-tags"></i> Offers & Promos</a>
+    <div class="nav-group-label">Customer</div>
+    <a href="/admin/customers.html" class="nav-item" data-page="customers.html"><i class="fas fa-users"></i> Customers</a>
+    <a href="/admin/enquiries.html" class="nav-item" data-page="enquiries.html"><i class="fas fa-envelope"></i> Enquiries</a>
+    <a href="/admin/reviews.html" class="nav-item" data-page="reviews.html"><i class="fas fa-star"></i> Reviews</a>
+    <div class="nav-group-label">Settings</div>
+    <a href="/admin/settings.html" class="nav-item" data-page="settings.html"><i class="fas fa-cog"></i> Settings</a>
+    <a href="/" class="nav-item" target="_blank"><i class="fas fa-external-link-alt"></i> View Website</a>
+  </nav>
+  <div class="sidebar-footer"><div class="sidebar-user"><div class="sidebar-avatar">A</div><div><div class="sidebar-username">Admin</div><div class="sidebar-role">Super Admin</div></div><button onclick="adminLogout()" style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px" title="Logout"><i class="fas fa-sign-out-alt"></i></button></div></div>
+</div>
+
+<div class="admin-main">
+  <div class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="hamburger-admin" id="hamburgerAdmin"><i class="fas fa-bars"></i></button><div class="topbar-title">Offers & Promocodes</div></div></div>
+  <div class="admin-content">
+    <div class="admin-table-wrap">
+      <div class="admin-table-header">
+        <div class="admin-table-title">All Offers</div>
+        <button class="btn btn-primary" onclick="openAddOffer()"><i class="fas fa-plus"></i> Add Offer</button>
+      </div>
+      <table class="admin-table">
+        <thead><tr><th>Code</th><th>Description</th><th>Discount</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="offersTbody">
+          <tr><td colspan="5" style="text-align:center;padding:40px"><div class="loader"><div class="spinner"></div></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="offerModal">
+  <div class="modal-content" style="max-width:500px">
+    <div class="modal-header"><h3>Add Offer</h3><button class="modal-close" onclick="closeModal('offerModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div id="offerAlert"></div>
+      <form id="offerForm">
+        <input type="hidden" id="editOfferId">
+        <div class="form-group"><label class="form-label">Promocode *</label><input type="text" name="code" class="form-control" required placeholder="e.g. SAVE20" style="text-transform:uppercase"></div>
+        <div class="form-group"><label class="form-label">Description</label><input type="text" name="description" class="form-control" placeholder="e.g. 20% off all printing"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Discount Type *</label>
+            <select name="discount_type" class="form-control" required>
+              <option value="percentage">Percentage (%)</option>
+              <option value="flat">Flat Amount (₹)</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Discount Value *</label><input type="number" name="discount_value" class="form-control" required min="0" step="0.01"></div>
+        </div>
+        <div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" name="is_active" checked> Active Offer</label></div>
+        <button type="submit" class="btn btn-primary" style="width:100%"><i class="fas fa-save"></i> Save Offer</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="/admin/js/admin.js"></script>
+<script>
+let currentOffers = [];
+async function loadOffers() {
+  const data = await apiRequest('/coupons');
+  if (!data?.success) return;
+  currentOffers = data.data;
+  const tbody = document.getElementById('offersTbody');
+  tbody.innerHTML = currentOffers.length ? currentOffers.map(o => `
+    <tr>
+      <td><strong>${o.code}</strong></td>
+      <td>${o.description || '-'}</td>
+      <td>${o.discount_type === 'percentage' ? o.discount_value + '%' : '₹' + o.discount_value} OFF</td>
+      <td>${o.is_active ? '<span class="status-badge status-completed">Active</span>' : '<span class="status-badge status-cancelled">Inactive</span>'}</td>
+      <td>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm btn-outline" onclick='editOffer(${JSON.stringify(o)})'><i class="fas fa-edit"></i> Edit</button>
+          <button class="btn btn-sm" style="background:var(--danger,red);color:#fff;border:none" onclick="deleteOffer(${o.id})"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>
+  `).join('') : '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">No offers found.</td></tr>';
+}
+
+function openAddOffer() {
+  document.getElementById('editOfferId').value = '';
+  document.getElementById('offerForm').reset();
+  document.querySelector('#offerModal h3').textContent = 'Add Offer';
+  openModal('offerModal');
+}
+
+function editOffer(o) {
+  document.getElementById('editOfferId').value = o.id;
+  const form = document.getElementById('offerForm');
+  form.code.value = o.code;
+  form.description.value = o.description || '';
+  form.discount_type.value = o.discount_type;
+  form.discount_value.value = o.discount_value;
+  form.is_active.checked = o.is_active;
+  document.querySelector('#offerModal h3').textContent = 'Edit Offer';
+  openModal('offerModal');
+}
+
+document.getElementById('offerForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const editId = document.getElementById('editOfferId').value;
+  const data = {
+    code: form.code.value.toUpperCase(),
+    description: form.description.value,
+    discount_type: form.discount_type.value,
+    discount_value: parseFloat(form.discount_value.value),
+    is_active: form.is_active.checked
+  };
+  
+  const method = editId ? 'PUT' : 'POST';
+  const url = editId ? `/coupons/${editId}` : '/coupons';
+  
+  const res = await apiRequest(url, method, data);
+  if (res?.success) {
+    showAdminToast('Offer saved successfully');
+    closeModal('offerModal');
+    loadOffers();
+  } else {
+    document.getElementById('offerAlert').innerHTML = `<div class="alert alert-error">${res?.message || 'Error saving offer'}</div>`;
+  }
+});
+
+async function deleteOffer(id) {
+  if (!confirm('Are you sure you want to delete this offer?')) return;
+  const res = await apiRequest(`/coupons/${id}`, 'DELETE');
+  if (res?.success) loadOffers();
+}
+
+document.addEventListener('DOMContentLoaded', loadOffers);
+</script>
+<script src="/js/cursor.js"></script>
+</body></html>

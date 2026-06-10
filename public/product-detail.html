@@ -39,7 +39,12 @@
           <div class="rating"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i> <span id="productRating">4.8</span></div>
           <span style="font-size:13px;color:var(--text-muted)"><span id="productOrders">100</span>+ orders</span>
         </div>
-        <div class="product-price-big" id="productPrice">₹0</div>
+        <div id="productPriceContainer" style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">
+          <div class="product-price-big" id="productPrice">₹0</div>
+          <div id="productMrp" style="font-size:18px;color:var(--text-muted);text-decoration:line-through;display:none;"></div>
+          <div id="productSavings" style="font-size:16px;color:var(--danger, #ef4444);font-weight:700;display:none;"></div>
+        </div>
+        <div id="productSavingsBadge" style="display:none;background-color:#7ed6df;color:#000;padding:4px 8px;border-radius:4px;font-size:13px;font-weight:600;margin-top:8px;width:fit-content;"></div>
         <div style="font-size:13px;color:var(--text-muted);margin-top:4px" id="minQtyHint">Minimum order: 25 units</div>
         <p id="productDesc" style="color:var(--text-muted);margin:20px 0;line-height:1.9;font-size:15px"></p>
 
@@ -50,6 +55,18 @@
         <div id="customSizeContainer" class="hidden" style="margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div><label class="form-label">Custom Width (<span id="customUnit1">cm</span>)</label><input type="number" id="customWidth" class="form-control" min="1"></div>
           <div><label class="form-label">Custom Height (<span id="customUnit2">cm</span>)</label><input type="number" id="customHeight" class="form-control" min="1"></div>
+        </div>
+
+        <!-- Available Offers -->
+        <div id="availableOfferContainer" style="display:none;margin-bottom:20px;padding:16px;border:1px dashed var(--accent);border-radius:8px;background:var(--surface2);">
+          <div style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:4px"><i class="fas fa-tag"></i> Available Offer</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <span id="offerCode" style="font-family:'Outfit',sans-serif;font-weight:800;font-size:18px;letter-spacing:1px;text-transform:uppercase;"></span>
+              <p id="offerDesc" style="font-size:13px;color:var(--text-muted);margin:4px 0 0;"></p>
+            </div>
+            <div id="offerDiscountBadge" style="background:var(--primary);color:#000;padding:4px 10px;border-radius:20px;font-size:13px;font-weight:700;"></div>
+          </div>
         </div>
 
         <!-- Quantity Dropdown -->
@@ -67,14 +84,14 @@
         <div id="pdfDownloadsContainer" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;"></div>
 
         <!-- Design Actions -->
-        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px">
+        <div id="designActionsContainer" style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px">
           <button class="btn btn-primary" style="width:100%;padding:14px;background-color:#6dcbed;color:#000;border:none" onclick="alert('Browse Designs feature coming soon!')"><i class="fas fa-images"></i> Browse designs</button>
           <button class="btn btn-outline" style="width:100%;padding:14px" onclick="document.getElementById('designUploadInput').click()"><i class="fas fa-cloud-upload-alt"></i> Upload design</button>
           <input type="file" id="designUploadInput" style="display:none" accept="image/*,.pdf">
         </div>
 
         <!-- Customization Note -->
-        <div class="form-group">
+        <div id="customizationNoteContainer" class="form-group">
           <label class="form-label">Customization Note (optional)</label>
           <textarea id="customizationNote" class="form-control" rows="2" placeholder="Describe your design, color preferences, artwork details..."></textarea>
         </div>

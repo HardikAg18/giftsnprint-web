@@ -44,6 +44,7 @@
       <div class="form-group"><label class="form-label">Full Description</label><textarea name="description" class="form-control" rows="3"></textarea></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Base Price (₹) *</label><input type="number" name="base_price" class="form-control" required min="0" step="0.01"></div>
+        <div class="form-group"><label class="form-label">M.R.P. (₹)</label><input type="number" name="mrp" class="form-control" min="0" step="0.01" placeholder="Original Price"></div>
         <div class="form-group"><label class="form-label">Unit Type *</label>
           <select name="unit_type" class="form-control" required>
             <option value="pcs">Pieces (pcs)</option>
@@ -62,7 +63,10 @@
         <input type="file" id="cloudinaryUpload" accept="image/*" style="display:none" onchange="uploadToCloudinary(this)">
         <div id="uploadStatus" style="font-size:12px;margin-top:6px;font-weight:600"></div>
       </div>
-      <div class="form-group"><label class="form-label">Tags (comma separated)</label><input type="text" name="tags" class="form-control" placeholder="t-shirt, printing, custom"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Tags (comma separated)</label><input type="text" name="tags" class="form-control" placeholder="t-shirt, printing, custom"></div>
+        <div class="form-group"><label class="form-label">Active Offer / Promocode</label><select name="offer_id" id="offerSelect" class="form-control"><option value="">None (No Offer)</option></select></div>
+      </div>
       
       <div class="form-group" style="background:var(--surface2);padding:16px;border-radius:12px;border:1px solid var(--border);margin-bottom:16px">
         <label class="form-label" style="display:flex;justify-content:space-between;align-items:center">
@@ -190,8 +194,23 @@ async function uploadToCloudinary(input) {
 }
 </script>
 <script>
+async function loadActiveOffers() {
+  try {
+    const res = await fetch('/api/coupons/active', { headers: { 'Authorization': 'Bearer ' + localStorage.getItem('gnp_admin_token') } });
+    const data = await res.json();
+    if (data.success) {
+      const select = document.getElementById('offerSelect');
+      select.innerHTML = '<option value="">None (No Offer)</option>';
+      data.data.forEach(offer => {
+        select.innerHTML += `<option value="${offer.id}">${offer.code} - ${offer.discount_type === 'percentage' ? offer.discount_value + '%' : '₹' + offer.discount_value} OFF</option>`;
+      });
+    }
+  } catch (err) { console.error('Failed to load offers', err); }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadAdminProducts();
+  loadActiveOffers();
   let t;
   document.getElementById('productSearch')?.addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => loadAdminProducts({ search: e.target.value }), 400); });
 });
@@ -209,11 +228,13 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
     short_description: form.short_description.value,
     description: form.description.value,
     base_price: parseFloat(form.base_price.value),
+    mrp: form.mrp.value ? parseFloat(form.mrp.value) : null,
     min_order_qty: parseInt(form.min_order_qty.value),
     unit_type: form.unit_type.value,
     tags: form.tags.value,
     image_url: form.image_url.value,
     gallery_images: window.currentGallery,
+    offer_id: form.offer_id.value ? parseInt(form.offer_id.value) : null,
     is_featured: form.is_featured.checked ? 1 : 0
   };
 
@@ -282,10 +303,12 @@ window.editProduct = async function(p) {
   form.short_description.value = p.short_description || '';
   form.description.value = p.description || '';
   form.base_price.value = p.base_price;
+  form.mrp.value = p.mrp || '';
   form.min_order_qty.value = p.min_order_qty;
   form.unit_type.value = p.unit_type;
   form.image_url.value = p.image_url || '';
   form.tags.value = p.tags || '';
+  form.offer_id.value = p.offer_id || '';
   form.is_featured.checked = p.is_featured;
   
   try {
