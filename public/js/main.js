@@ -1,6 +1,6 @@
 // GiftsNPrint - main.js
 const API = '/api';
-let WHATSAPP = '918619658589'; // Fallback
+let WHATSAPP = '918769558589'; // Fallback
 let SETTINGS = {};
 
 /* ── Dynamic Settings ── */
