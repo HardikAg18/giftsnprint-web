@@ -5,8 +5,16 @@ const auth = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
+const cloudinary = require('cloudinary').v2;
 
-// Note: Multer is removed for Serverless environments. Admin Panel will send Image URLs.
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true
+});
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 // GET /api/products - List all products (public)
 router.get('/', async (req, res) => {
@@ -94,6 +102,29 @@ router.get('/:slug', async (req, res) => {
 });
 
 // Admin routes below - protected
+// POST /api/products/upload-image - Upload product image to Cloudinary
+router.post('/upload-image', auth, upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ success: false, message: 'No file provided.' });
+        
+        const uploadStream = cloudinary.uploader.upload_stream(
+            { folder: 'giftsnprint_products' },
+            (error, result) => {
+                if (error) return res.status(500).json({ success: false, message: 'Cloudinary upload failed.' });
+                
+                const optimizedUrl = cloudinary.url(result.public_id, {
+                    fetch_format: 'auto',
+                    quality: 'auto'
+                });
+                res.json({ success: true, url: optimizedUrl });
+            }
+        );
+        uploadStream.end(req.file.buffer);
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server error during upload.' });
+    }
+});
+
 // POST /api/products - Create product
 router.post('/', auth, async (req, res) => {
     try {

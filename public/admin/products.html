@@ -54,7 +54,14 @@
         </div>
         <div class="form-group"><label class="form-label">Min Order Qty</label><input type="number" name="min_order_qty" class="form-control" value="25" min="1"></div>
       </div>
-      <div class="form-group"><label class="form-label">Product Image URL</label><input type="url" name="image_url" class="form-control" placeholder="https://example.com/image.jpg"></div>
+      <div class="form-group"><label class="form-label">Product Image URL</label>
+        <div style="display:flex;gap:8px">
+          <input type="url" id="image_url" name="image_url" class="form-control" placeholder="https://example.com/image.jpg">
+          <button type="button" class="btn btn-outline" style="white-space:nowrap" onclick="document.getElementById('cloudinaryUpload').click()"><i class="fas fa-upload"></i> Upload Image</button>
+        </div>
+        <input type="file" id="cloudinaryUpload" accept="image/*" style="display:none" onchange="uploadToCloudinary(this)">
+        <div id="uploadStatus" style="font-size:12px;margin-top:6px;font-weight:600"></div>
+      </div>
       <div class="form-group"><label class="form-label">Tags (comma separated)</label><input type="text" name="tags" class="form-control" placeholder="t-shirt, printing, custom"></div>
       
       <div class="form-group" style="background:var(--surface2);padding:16px;border-radius:12px;border:1px solid var(--border)">
@@ -79,7 +86,40 @@
   </div>
 </div>
 
-<script src="/admin/js/admin.js"></script><script>
+<script src="/admin/js/admin.js"></script>
+<script>
+async function uploadToCloudinary(input) {
+  if (!input.files || input.files.length === 0) return;
+  const status = document.getElementById('uploadStatus');
+  const imgInput = document.getElementById('image_url');
+  status.textContent = 'Uploading to Cloudinary...';
+  status.style.color = 'var(--primary)';
+  
+  const formData = new FormData();
+  formData.append('image', input.files[0]);
+  
+  try {
+    const res = await fetch('/api/products/upload-image', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + localStorage.getItem('gnp_admin_token') },
+      body: formData
+    });
+    const data = await res.json();
+    if (data.success) {
+      status.textContent = 'Upload successful!';
+      status.style.color = '#10b981'; // green
+      imgInput.value = data.url;
+    } else {
+      status.textContent = 'Upload failed: ' + data.message;
+      status.style.color = '#ef4444'; // red
+    }
+  } catch (error) {
+    status.textContent = 'Upload failed: Network error.';
+    status.style.color = '#ef4444';
+  }
+}
+</script>
+<script>
 document.addEventListener('DOMContentLoaded', () => {
   loadAdminProducts();
   let t;
