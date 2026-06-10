@@ -39,7 +39,7 @@ function renderCart() {
 
   // Summary
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const gst = Math.round(subtotal * 0.18);
+  const gst = Math.round(cart.reduce((s, i) => s + (i.price * i.qty * (parseFloat(i.gst_percent) || 18) / 100), 0));
   const shipping = subtotal >= 1000 ? 0 : 99;
   const total = subtotal + gst + shipping;
 

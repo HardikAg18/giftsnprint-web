@@ -46,6 +46,17 @@
       <div class="form-row">
         <div class="form-group"><label class="form-label">Base Price (₹) *</label><input type="number" name="base_price" class="form-control" required min="0" step="0.01"></div>
         <div class="form-group"><label class="form-label">M.R.P. (₹)</label><input type="number" name="mrp" class="form-control" min="0" step="0.01" placeholder="Original Price"></div>
+        <div class="form-group"><label class="form-label">GST % *</label>
+          <select name="gst_percent" class="form-control" required>
+            <option value="0">0%</option>
+            <option value="5">5%</option>
+            <option value="12">12%</option>
+            <option value="18" selected>18%</option>
+            <option value="28">28%</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
         <div class="form-group"><label class="form-label">Unit Type *</label>
           <select name="unit_type" class="form-control" required>
             <option value="pcs">Pieces (pcs)</option>
@@ -233,6 +244,7 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
     description: form.description.value,
     base_price: parseFloat(form.base_price.value),
     mrp: form.mrp.value ? parseFloat(form.mrp.value) : null,
+    gst_percent: parseFloat(form.gst_percent.value),
     min_order_qty: parseInt(form.min_order_qty.value),
     unit_type: form.unit_type.value,
     tags: form.tags.value,
@@ -311,7 +323,8 @@ window.editProduct = async function(p) {
   form.description.value = p.description || '';
   form.base_price.value = p.base_price;
   form.mrp.value = p.mrp || '';
-  form.min_order_qty.value = p.min_order_qty;
+  form.gst_percent.value = p.gst_percent || '18';
+  form.min_order_qty.value = p.min_order_qty || 1;
   form.unit_type.value = p.unit_type;
   form.image_url.value = p.image_url || '';
   form.tags.value = p.tags || '';

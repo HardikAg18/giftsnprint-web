@@ -18,11 +18,12 @@ async function initCheckout() {
     if (!summaryEl) return;
     
     const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
-    const gst = Math.round(subtotal * 0.18);
+    const gst = Math.round(cart.reduce((s, i) => s + (i.price * i.qty * (parseFloat(i.gst_percent) || 18) / 100), 0));
     const shipping = subtotal >= 1000 ? 0 : 99;
     let total = subtotal + gst + shipping - appliedDiscount;
     if (total < 0) total = 0;
 
+    summaryEl.classList.remove('loader');
     summaryEl.innerHTML = `
       ${cart.map(i => `
         <div class="summary-item">
@@ -31,7 +32,7 @@ async function initCheckout() {
         </div>`).join('')}
       <div class="summary-divider"></div>
       <div class="summary-item"><span>Subtotal</span><span>₹${subtotal.toLocaleString('en-IN')}</span></div>
-      <div class="summary-item"><span>GST (18%)</span><span>₹${gst.toLocaleString('en-IN')}</span></div>
+      <div class="summary-item"><span>GST</span><span>₹${gst.toLocaleString('en-IN')}</span></div>
       <div class="summary-item"><span>Shipping</span><span>${shipping === 0 ? 'FREE 🎉' : '₹' + shipping}</span></div>
       ${appliedDiscount > 0 ? `<div class="summary-item" style="color:var(--green)"><span>Discount</span><span>-₹${appliedDiscount.toLocaleString('en-IN')}</span></div>` : ''}
       <div class="summary-total"><span>Total</span><span>₹${total.toLocaleString('en-IN')}</span></div>
