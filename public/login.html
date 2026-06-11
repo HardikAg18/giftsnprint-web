@@ -3,58 +3,366 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | GiftsNPrint</title>
+    <title>Login or Sign Up | GiftsNPrint</title>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
     <style>
-        .login-container { max-width: 400px; margin: 100px auto; padding: 32px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
-        .form-group { margin-bottom: 16px; }
-        .form-label { display: block; margin-bottom: 8px; font-weight: 500; }
-        .form-control { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; }
-        .btn-primary { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
-        .hidden { display: none; }
+        body {
+            background-color: var(--bg);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .login-wrapper {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        /* Left Branding Panel */
+        .login-branding {
+            flex: 1;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 60px;
+            color: #ffffff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-branding::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .branding-content {
+            z-index: 1;
+            max-width: 480px;
+        }
+
+        .branding-logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .branding-logo span {
+            color: var(--accent);
+        }
+
+        .branding-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 24px;
+        }
+
+        .branding-subtitle {
+            font-size: 18px;
+            line-height: 1.6;
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* Right Form Panel */
+        .login-form-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            position: relative;
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 440px;
+            padding: 48px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            animation: fadeUp 0.6s ease-out;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-box h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .login-box p.subtitle {
+            color: var(--text-muted);
+            margin-bottom: 32px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 18px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 16px 16px 16px 48px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            background: var(--surface2);
+            color: var(--text);
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+            background: var(--surface);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .alert {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .change-email-btn {
+            background: none;
+            border: none;
+            color: var(--primary-light);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 24px;
+            width: 100%;
+            transition: color 0.3s ease;
+        }
+
+        .change-email-btn:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .back-to-home {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .back-to-home:hover {
+            color: var(--primary);
+        }
+
+        @media (max-width: 992px) {
+            .login-branding { display: none; }
+            .login-box { padding: 40px 24px; box-shadow: none; border: none; background: transparent; }
+            .back-to-home { top: 20px; right: 20px; }
+        }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <h2 style="font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 24px; text-align: center;">Welcome Back</h2>
-        
-        <div id="step1">
-            <p style="color: var(--text-muted); margin-bottom: 24px; text-align: center;">Enter your email to receive a One-Time Password.</p>
-            <div id="emailError" style="color: red; font-size: 14px; margin-bottom: 12px;" class="hidden"></div>
-            <div class="form-group">
-                <label class="form-label">Email Address</label>
-                <input type="email" id="emailInput" class="form-control" placeholder="you@example.com" required>
+
+    <div class="login-wrapper">
+        <!-- Left Branding Area -->
+        <div class="login-branding">
+            <a href="/" class="branding-logo">
+                <i class="fas fa-print" style="color: var(--accent);"></i>
+                GiftsN<span>Print</span>
+            </a>
+            <div class="branding-content">
+                <h1 class="branding-title">Create, Customize, & Print with Ease.</h1>
+                <p class="branding-subtitle">Log in or create a new account in seconds. We use a secure, passwordless system to keep your account safe.</p>
             </div>
-            <button class="btn-primary" id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
+            <div style="font-size: 13px; color: rgba(255,255,255,0.6);">
+                © 2026 GiftsNPrint. All rights reserved.
+            </div>
         </div>
 
-        <div id="step2" class="hidden">
-            <p style="color: var(--text-muted); margin-bottom: 24px; text-align: center;">Enter the 6-digit OTP sent to your email.</p>
-            <div id="otpError" style="color: red; font-size: 14px; margin-bottom: 12px;" class="hidden"></div>
-            <div class="form-group">
-                <label class="form-label">Enter OTP</label>
-                <input type="text" id="otpInput" class="form-control" placeholder="123456" maxlength="6" required>
-            </div>
-            <button class="btn-primary" id="verifyOtpBtn" onclick="verifyOTP()">Verify & Login</button>
-            <div style="text-align: center; margin-top: 16px;">
-                <button onclick="document.getElementById('step2').classList.add('hidden'); document.getElementById('step1').classList.remove('hidden');" style="background: none; border: none; color: var(--primary); cursor: pointer;">Change Email</button>
+        <!-- Right Form Area -->
+        <div class="login-form-container">
+            <a href="/" class="back-to-home"><i class="fas fa-arrow-left"></i> Back to Website</a>
+            
+            <div class="login-box">
+                
+                <!-- STEP 1: EMAIL ENTRY -->
+                <div id="step1">
+                    <h2>Welcome!</h2>
+                    <p class="subtitle">Enter your email address below to log in or create a new account instantly.</p>
+                    
+                    <div id="emailError" class="alert alert-error hidden"></div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <div class="input-group">
+                            <i class="ri-mail-line"></i>
+                            <input type="email" id="emailInput" class="form-control" placeholder="you@example.com" autocomplete="email" required onkeypress="if(event.key === 'Enter') sendOTP()">
+                        </div>
+                    </div>
+                    
+                    <button class="btn-primary" id="sendOtpBtn" onclick="sendOTP()">
+                        Continue with Email <i class="ri-arrow-right-line"></i>
+                    </button>
+
+                    <p style="margin-top: 24px; font-size: 13px; color: var(--text-muted); text-align: center; line-height: 1.5;">
+                        By continuing, you agree to GiftsNPrint's <a href="#" style="color: var(--primary);">Terms of Service</a> and <a href="#" style="color: var(--primary);">Privacy Policy</a>.
+                    </p>
+                </div>
+
+                <!-- STEP 2: OTP VERIFICATION -->
+                <div id="step2" class="hidden">
+                    <h2>Check your email</h2>
+                    <p class="subtitle">We've sent a secure 6-digit code to <strong id="displayEmail" style="color: var(--text);"></strong>. Enter it below to verify your identity.</p>
+                    
+                    <div id="otpError" class="alert alert-error hidden"></div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Secure Code</label>
+                        <div class="input-group">
+                            <i class="ri-shield-keyhole-line"></i>
+                            <input type="text" id="otpInput" class="form-control" placeholder="• • • • • •" maxlength="6" style="letter-spacing: 4px; font-size: 20px; text-align: center; padding-left: 16px;" required onkeypress="if(event.key === 'Enter') verifyOTP()">
+                        </div>
+                    </div>
+                    
+                    <button class="btn-primary" id="verifyOtpBtn" onclick="verifyOTP()">
+                        Verify & Complete <i class="ri-check-line"></i>
+                    </button>
+                    
+                    <button class="change-email-btn" onclick="goBackToStep1()">
+                        Entered wrong email? Change it here
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Add cursor script -->
+    <script src="/js/cursor.js"></script>
     <script>
         async function sendOTP() {
-            const email = document.getElementById('emailInput').value;
+            const email = document.getElementById('emailInput').value.trim();
             const btn = document.getElementById('sendOtpBtn');
             const err = document.getElementById('emailError');
             
-            if(!email) { err.textContent = 'Please enter email'; err.classList.remove('hidden'); return; }
+            if(!email) { 
+                err.innerHTML = '<i class="ri-error-warning-line"></i> Please enter a valid email address'; 
+                err.classList.remove('hidden'); 
+                return; 
+            }
             err.classList.add('hidden');
             
             btn.disabled = true;
-            btn.textContent = 'Sending...';
+            btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Sending secure code...';
 
             try {
                 const res = await fetch('/api/customers/send-otp', {
@@ -65,32 +373,38 @@
                 const data = await res.json();
                 
                 if (data.success) {
+                    document.getElementById('displayEmail').textContent = email;
                     document.getElementById('step1').classList.add('hidden');
                     document.getElementById('step2').classList.remove('hidden');
+                    document.getElementById('otpInput').focus();
                 } else {
-                    err.textContent = data.message || 'Failed to send OTP';
+                    err.innerHTML = `<i class="ri-error-warning-line"></i> ${data.message || 'Failed to send secure code'}`;
                     err.classList.remove('hidden');
                 }
             } catch(e) {
-                err.textContent = 'Server error. Please try again.';
+                err.innerHTML = '<i class="ri-wifi-off-line"></i> Connection error. Please try again.';
                 err.classList.remove('hidden');
             }
             
             btn.disabled = false;
-            btn.textContent = 'Send OTP';
+            btn.innerHTML = 'Continue with Email <i class="ri-arrow-right-line"></i>';
         }
 
         async function verifyOTP() {
-            const email = document.getElementById('emailInput').value;
-            const otp = document.getElementById('otpInput').value;
+            const email = document.getElementById('emailInput').value.trim();
+            const otp = document.getElementById('otpInput').value.trim();
             const btn = document.getElementById('verifyOtpBtn');
             const err = document.getElementById('otpError');
             
-            if(!otp) { err.textContent = 'Please enter OTP'; err.classList.remove('hidden'); return; }
+            if(!otp || otp.length < 6) { 
+                err.innerHTML = '<i class="ri-error-warning-line"></i> Please enter the 6-digit code'; 
+                err.classList.remove('hidden'); 
+                return; 
+            }
             err.classList.add('hidden');
             
             btn.disabled = true;
-            btn.textContent = 'Verifying...';
+            btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Verifying...';
 
             try {
                 const res = await fetch('/api/customers/verify-otp', {
@@ -106,18 +420,32 @@
                     
                     const urlParams = new URLSearchParams(window.location.search);
                     const redirect = urlParams.get('redirect') || '/';
-                    window.location.href = redirect;
+                    
+                    btn.innerHTML = '<i class="ri-check-double-line"></i> Success! Redirecting...';
+                    btn.style.background = '#10b981'; // Success green
+                    
+                    setTimeout(() => {
+                        window.location.href = redirect;
+                    }, 800);
                 } else {
-                    err.textContent = data.message || 'Invalid OTP';
+                    err.innerHTML = `<i class="ri-error-warning-line"></i> ${data.message || 'Invalid code. Please try again.'}`;
                     err.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.innerHTML = 'Verify & Complete <i class="ri-check-line"></i>';
                 }
             } catch(e) {
-                err.textContent = 'Server error. Please try again.';
+                err.innerHTML = '<i class="ri-wifi-off-line"></i> Connection error. Please try again.';
                 err.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerHTML = 'Verify & Complete <i class="ri-check-line"></i>';
             }
-            
-            btn.disabled = false;
-            btn.textContent = 'Verify & Login';
+        }
+        
+        function goBackToStep1() {
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step1').classList.remove('hidden');
+            document.getElementById('otpInput').value = '';
+            document.getElementById('emailInput').focus();
         }
     </script>
 </body>

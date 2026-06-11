@@ -307,7 +307,7 @@ async function loadProductDetail() {
       const finalUnitPrice = (baseUnitPrice + modifiers) * areaMultiplier;
       window.currentCalculatedPrice = finalUnitPrice;
       
-      document.getElementById('productPrice').textContent = `₹${finalUnitPrice.toLocaleString('en-IN', {maximumFractionDigits:2})} incl. GST`;
+      document.getElementById('productPrice').textContent = `₹${finalUnitPrice.toLocaleString('en-IN', {maximumFractionDigits:2})}`;
       
       const mrpEl = document.getElementById('productMrp');
       const savEl = document.getElementById('productSavings');
