@@ -17,6 +17,7 @@ async function initCheckout() {
   if (!cart.length) { window.location.href = '/cart.html'; return; }
 
   let appliedDiscount = 0;
+  let currentPromoCode = '';
 
 window.updateCheckoutCart = function(index, delta) {
     const newQty = cart[index].qty + delta;
@@ -38,10 +39,12 @@ window.updateCheckoutCart = function(index, delta) {
     const summaryEl = document.getElementById('orderSummary');
     if (!summaryEl) return;
     
+    const paymentMethod = document.getElementById('paymentMethod')?.value || 'razorpay';
+    const codFee = paymentMethod === 'cod' ? 50 : 0;
     const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
     const gst = Math.round(cart.reduce((s, i) => s + (i.price * i.qty * (parseFloat(i.gst_percent) || 18) / 100), 0));
     const shipping = subtotal >= 1000 ? 0 : 99;
-    let total = subtotal + gst + shipping - appliedDiscount;
+    let total = subtotal + gst + shipping + codFee - appliedDiscount;
     if (total < 0) total = 0;
 
     summaryEl.classList.remove('loader');
@@ -63,6 +66,7 @@ window.updateCheckoutCart = function(index, delta) {
       <div class="summary-item"><span>Subtotal</span><span>₹${subtotal.toLocaleString('en-IN')}</span></div>
       <div class="summary-item"><span>GST</span><span>₹${gst.toLocaleString('en-IN')}</span></div>
       <div class="summary-item"><span>Shipping</span><span>${shipping === 0 ? 'FREE 🎉' : '₹' + shipping}</span></div>
+      ${codFee > 0 ? `<div class="summary-item"><span>COD Handling</span><span>₹${codFee}</span></div>` : ''}
       ${appliedDiscount > 0 ? `<div class="summary-item" style="color:var(--green)"><span>Discount</span><span>-₹${appliedDiscount.toLocaleString('en-IN')}</span></div>` : ''}
       <div class="summary-total"><span>Total</span><span>₹${total.toLocaleString('en-IN')}</span></div>
     `;
@@ -70,6 +74,21 @@ window.updateCheckoutCart = function(index, delta) {
   }
 
   renderSummary();
+
+  const paymentMethodSelect = document.getElementById('paymentMethod');
+  if (paymentMethodSelect) {
+    paymentMethodSelect.addEventListener('change', () => {
+      renderSummary();
+      const btn = document.getElementById('payBtn');
+      if (btn) {
+        if (paymentMethodSelect.value === 'cod') {
+          btn.innerHTML = 'Place Order <i class="fas fa-arrow-right"></i>';
+        } else {
+          btn.innerHTML = '<i class="fas fa-lock"></i> Pay Securely';
+        }
+      }
+    });
+  }
 
   const applyPromoBtn = document.getElementById('applyPromoBtn');
   if (applyPromoBtn) {
@@ -101,6 +120,7 @@ window.updateCheckoutCart = function(index, delta) {
             msgEl.style.display = 'block';
             msgEl.style.color = 'var(--green)';
             msgEl.textContent = `Promocode applied successfully!`;
+            currentPromoCode = code;
           }
           renderSummary();
         } else {

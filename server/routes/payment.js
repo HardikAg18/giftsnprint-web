@@ -45,7 +45,8 @@ router.post('/create-order', async (req, res) => {
             }
         }
         const shipping = subtotal >= 2000 ? 0 : 150;
-        const total = subtotal + gst + shipping - discount;
+        const codFee = req.body.payment_method === 'cod' ? 50 : 0;
+        const total = subtotal + gst + shipping + codFee - discount;
         
         const isCOD = req.body.payment_method === 'cod';
 
