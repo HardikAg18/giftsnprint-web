@@ -34,7 +34,7 @@ router.post('/create-order', async (req, res) => {
         let discount = 0;
         if (coupon_code) {
             const [coupons] = await db.execute(
-                `SELECT * FROM coupons WHERE code = ? AND is_active = TRUE AND (valid_till IS NULL OR valid_till >= CURDATE()) AND (usage_limit IS NULL OR used_count < usage_limit) AND min_order_amount <= ?`,
+                `SELECT * FROM coupons WHERE code = ? AND is_active = TRUE AND (valid_till IS NULL OR valid_till >= CURRENT_DATE) AND (usage_limit IS NULL OR used_count < usage_limit) AND min_order_amount <= ?`,
                 [coupon_code, subtotal]
             );
             if (coupons.length > 0) {
@@ -188,7 +188,7 @@ router.post('/validate-coupon', async (req, res) => {
     try {
         const { code, order_amount } = req.body;
         const [coupons] = await db.execute(
-            `SELECT * FROM coupons WHERE code = ? AND is_active = TRUE AND (valid_till IS NULL OR valid_till >= CURDATE()) AND (usage_limit IS NULL OR used_count < usage_limit)`,
+            `SELECT * FROM coupons WHERE code = ? AND is_active = TRUE AND (valid_till IS NULL OR valid_till >= CURRENT_DATE) AND (usage_limit IS NULL OR used_count < usage_limit)`,
             [code]
         );
         if (coupons.length === 0) return res.status(400).json({ success: false, message: 'Invalid or expired coupon.' });
