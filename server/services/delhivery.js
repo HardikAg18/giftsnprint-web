@@ -23,10 +23,10 @@ async function pushOrderToDelhivery(orderData) {
                     shipping_mode: "Surface"
                 }],
                 pickup_location: {
-                    name: "GiftsNPrint HQ", // Required pickup point
-                    add: "Default pickup address",
-                    city: "Delhi",
-                    pin: "110001",
+                    name: "Vikalp Advertising", // Required pickup point matching your Delhivery dashboard
+                    add: "Mansarovar",
+                    city: "Jaipur",
+                    pin: "302020",
                     country: "India",
                     phone: "9999999999"
                 }
