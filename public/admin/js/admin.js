@@ -94,6 +94,7 @@ window.loadDashboardStats = async function() {
   set('statRevenue', formatINR(s.totalRevenue));
   set('statPending', s.pendingOrders);
   set('statCustomers', s.totalCustomers);
+  set('pendingBadge', s.pendingOrders);
 
   // Recent orders table
   const tbody = document.getElementById('recentOrdersTbody');
@@ -159,7 +160,7 @@ document.getElementById('updateOrderForm')?.addEventListener('submit', async (e)
   const tracking = document.getElementById('updateTracking').value;
   const notes = document.getElementById('updateNotes').value;
   const data = await apiRequest(`/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ order_status: status, tracking_info: tracking, notes }) });
-  if (data?.success) { showAdminToast('Order status updated!'); closeModal('updateOrderModal'); loadOrders(); }
+  if (data?.success) { showAdminToast('Order status updated!'); closeModal('updateOrderModal'); loadOrders(); window.updateSidebarBadge(); }
   else showAdminToast('Failed to update order.', 'error');
 });
 
@@ -197,6 +198,7 @@ document.getElementById('shipOrderForm')?.addEventListener('submit', async (e) =
     showAdminToast('Order manifested and scheduled for pickup!'); 
     closeModal('shipOrderModal'); 
     loadOrders(); 
+    window.updateSidebarBadge();
   } else { 
     showAdminToast(data?.message || 'Failed to manifest order.', 'error'); 
   }
@@ -208,6 +210,7 @@ window.deleteOrder = async function(id, orderId) {
     if (data?.success) {
       showAdminToast('Order deleted successfully!');
       loadOrders();
+      window.updateSidebarBadge();
     } else {
       showAdminToast(data?.message || 'Failed to delete order.', 'error');
     }
@@ -315,6 +318,20 @@ window.updateReviewStatus = async function(id, is_approved, is_featured) {
     if (data?.success) { showAdminToast('Review updated'); loadReviews(); }
 };
 
+window.updateSidebarBadge = async function() {
+  if (location.pathname.includes('index.html')) return; // loadDashboardStats already updates it on dashboard
+  const badge = document.getElementById('pendingBadge');
+  if (!badge) return;
+  try {
+    const data = await apiRequest('/orders/stats');
+    if (data?.success) {
+      badge.textContent = data.stats.pendingOrders;
+    }
+  } catch (e) {
+    console.error('Failed to update sidebar badge:', e);
+  }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   requireAuth();
   if (location.pathname.includes('index.html')) loadDashboardStats();
@@ -322,6 +339,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (location.pathname.includes('customers.html')) loadCustomers();
   if (location.pathname.includes('enquiries.html')) loadEnquiries();
   if (location.pathname.includes('reviews.html')) loadReviews();
+  
+  window.updateSidebarBadge();
 });
 
 // Init on load

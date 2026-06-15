@@ -25,7 +25,7 @@ router.get('/stats', auth, async (req, res) => {
     try {
         const [totalOrders] = await db.execute('SELECT COUNT(*) as count FROM orders');
         const [totalRevenue] = await db.execute("SELECT SUM(total_amount) as total FROM orders WHERE payment_status = 'paid'");
-        const [pendingOrders] = await db.execute("SELECT COUNT(*) as count FROM orders WHERE order_status = 'pending'");
+        const [pendingOrders] = await db.execute("SELECT COUNT(*) as count FROM orders WHERE order_status IN ('pending', 'confirmed', 'processing')");
         const [totalCustomers] = await db.execute('SELECT COUNT(DISTINCT customer_email) as count FROM orders');
         const [recentOrders] = await db.execute('SELECT * FROM orders ORDER BY created_at DESC LIMIT 5');
         const [monthlyRevenue] = await db.execute(`
