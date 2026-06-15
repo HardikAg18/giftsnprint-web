@@ -7,13 +7,23 @@ const API_BASE = 'https://track.delhivery.com/api/cmu/create.json'; // productio
  */
 async function pushOrderToDelhivery(orderData) {
     try {
+        // Sanitize phone number (remove country code +91 and symbols, must be 10-digit number for Delhivery)
+        let phone = orderData.customer_phone || '';
+        phone = phone.replace(/\D/g, ''); // strip non-digits
+        if (phone.length === 12 && phone.startsWith('91')) {
+            phone = phone.substring(2); // strip leading 91
+        }
+        if (phone.length > 10) {
+            phone = phone.substring(phone.length - 10); // get last 10 digits
+        }
+
         const payload = {
             format: "json",
             data: {
                 shipments: [{
                     add: orderData.shipping_address,
                     address_type: "home",
-                    phone: orderData.customer_phone,
+                    phone: phone,
                     payment_mode: orderData.payment_method === 'cod' ? 'COD' : 'Pre-paid',
                     name: orderData.customer_name,
                     pin: orderData.pincode,
@@ -33,6 +43,13 @@ async function pushOrderToDelhivery(orderData) {
             }
         };
 
+        if (orderData.pickup_date) {
+            payload.data.pickup_date = orderData.pickup_date;
+        }
+        if (orderData.pickup_time) {
+            payload.data.pickup_time = orderData.pickup_time;
+        }
+
         const response = await fetch(API_BASE, {
             method: 'POST',
             headers: {
@@ -46,18 +63,24 @@ async function pushOrderToDelhivery(orderData) {
         let result;
         try { result = JSON.parse(text); } catch(e) { result = text; }
 
-        console.log("Delhivery API Response:", result);
+        console.log("Delhivery API Response:", JSON.stringify(result, null, 2));
 
         if (result.packages && result.packages.length > 0) {
-            return result.packages[0].waybill; // AWB tracking ID
+            const pkg = result.packages[0];
+            if (pkg.status === 'Success' && pkg.waybill) {
+                return { success: true, tracking_id: pkg.waybill };
+            } else {
+                const remark = pkg.remarks && pkg.remarks.length > 0 ? pkg.remarks.join(', ') : (result.rmk || 'Unknown Delhivery error');
+                return { success: false, error: remark };
+            }
         } else {
-            console.error('Delhivery failed to generate AWB');
-            return null;
+            const remark = result.rmk || 'Failed to generate tracking ID from Delhivery. Verify settings.';
+            return { success: false, error: remark };
         }
 
     } catch (err) {
         console.error("Delhivery Integration Error:", err);
-        return null;
+        return { success: false, error: err.message || 'Connection to Delhivery failed.' };
     }
 }
 

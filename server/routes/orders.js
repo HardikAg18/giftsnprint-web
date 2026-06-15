@@ -63,4 +63,70 @@ router.get('/:id', auth, async (req, res) => {
     } catch (err) { res.status(500).json({ success: false, message: 'Server error.' }); }
 });
 
+// POST /api/orders/:id/ship - Ship order with Delhivery (admin)
+router.post('/:id/ship', auth, async (req, res) => {
+    try {
+        const { pickup_date, pickup_time } = req.body;
+        if (!pickup_date) return res.status(400).json({ success: false, message: 'Pickup date is required.' });
+
+        const [orders] = await db.execute('SELECT * FROM orders WHERE id = ?', [req.params.id]);
+        if (!orders.length) return res.status(404).json({ success: false, message: 'Order not found.' });
+        
+        const ord = orders[0];
+        if (ord.tracking_id) {
+            return res.status(400).json({ success: false, message: 'Order has already been manifested/shipped.' });
+        }
+
+        const { pushOrderToDelhivery } = require('../services/delhivery');
+        const { sendEmail } = require('../services/email');
+
+        // Call Delhivery API
+        const delhiveryResult = await pushOrderToDelhivery({
+            order_id: ord.order_id,
+            customer_name: ord.customer_name,
+            customer_phone: ord.customer_phone,
+            shipping_address: ord.shipping_address,
+            pincode: ord.pincode,
+            payment_method: ord.payment_method,
+            total_amount: ord.total_amount,
+            pickup_date,
+            pickup_time
+        });
+
+        if (!delhiveryResult.success) {
+            return res.status(500).json({ success: false, message: delhiveryResult.error });
+        }
+
+        const awb = delhiveryResult.tracking_id;
+
+        // Update database
+        await db.execute(
+            'UPDATE orders SET tracking_id = ?, order_status = ?, estimated_delivery = ? WHERE id = ?',
+            [awb, 'shipped', pickup_date, req.params.id]
+        );
+
+        // Send Email notification to customer
+        const trackingUrl = `https://www.delhivery.com/track/package/${awb}`;
+        const emailHtml = `
+            <h2>Your Order has been Shipped!</h2>
+            <p>Hello ${ord.customer_name},</p>
+            <p>Good news! Your order <b>${ord.order_id}</b> has been handed over to our delivery partner, Delhivery.</p>
+            <p><b>Tracking ID (AWB):</b> ${awb}</p>
+            <p>You can track your package details here: <a href="${trackingUrl}">${trackingUrl}</a></p>
+            <br>
+            <p>Thank you for shopping with GiftsNPrint!</p>
+        `;
+        await sendEmail({
+            to: ord.customer_email,
+            subject: `Your GiftsNPrint Order ${ord.order_id} has been Shipped!`,
+            html: emailHtml
+        });
+
+        res.json({ success: true, message: 'Order successfully shipped with Delhivery.', tracking_id: awb });
+    } catch (err) {
+        console.error('Ship order error:', err);
+        res.status(500).json({ success: false, message: 'Server error during shipment processing.' });
+    }
+});
+
 module.exports = router;

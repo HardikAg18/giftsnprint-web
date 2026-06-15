@@ -131,7 +131,14 @@ window.loadOrders = async function(params = {}) {
       <td>${statusBadge(o.payment_status)}</td>
       <td>${formatDate(o.created_at)}</td>
       <td>
-        <button class="btn btn-outline btn-sm btn-icon" title="Update Status" onclick="openUpdateOrder('${o.id}','${o.order_id}','${o.order_status}')"><i class="fas fa-edit"></i></button>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="btn btn-outline btn-sm btn-icon" title="Update Status" onclick="openUpdateOrder('${o.id}','${o.order_id}','${o.order_status}')"><i class="fas fa-edit"></i></button>
+          ${o.tracking_id 
+            ? `<a href="https://www.delhivery.com/track/package/${o.tracking_id}" target="_blank" class="btn btn-outline btn-sm btn-icon" title="Track package" style="color:#10B981;border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.05)"><i class="fas fa-eye"></i></a>` 
+            : `<button class="btn btn-outline btn-sm btn-icon" title="Ship with Delhivery" style="color:#10B981;border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.05)" onclick="openShipOrder('${o.id}','${o.order_id}')"><i class="fas fa-truck"></i></button>`
+          }
+        </div>
+        ${o.tracking_id ? `<div style="font-size:11px;margin-top:4px;color:var(--text-muted)">AWB: <b>${o.tracking_id}</b></div>` : ''}
       </td>
     </tr>`).join('')
     : '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px">No orders found.</td></tr>';
@@ -153,6 +160,45 @@ document.getElementById('updateOrderForm')?.addEventListener('submit', async (e)
   const data = await apiRequest(`/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ order_status: status, tracking_info: tracking, notes }) });
   if (data?.success) { showAdminToast('Order status updated!'); closeModal('updateOrderModal'); loadOrders(); }
   else showAdminToast('Failed to update order.', 'error');
+});
+
+window.openShipOrder = function(id, orderId) {
+  document.getElementById('shipOrderId').value = id;
+  document.getElementById('shipOrderIdLabel').textContent = orderId;
+  
+  // Default pickup date to tomorrow
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  document.getElementById('shipPickupDate').value = tomorrow.toISOString().split('T')[0];
+  
+  openModal('shipOrderModal');
+};
+
+document.getElementById('shipOrderForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('shipOrderId').value;
+  const pickup_date = document.getElementById('shipPickupDate').value;
+  const pickup_time = document.getElementById('shipPickupTime').value;
+  const btn = document.getElementById('shipSubmitBtn');
+  
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Manifesting...';
+  
+  const data = await apiRequest(`/orders/${id}/ship`, { 
+    method: 'POST', 
+    body: JSON.stringify({ pickup_date, pickup_time }) 
+  });
+  
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-truck"></i> Generate Manifest';
+  
+  if (data?.success) { 
+    showAdminToast('Order manifested and scheduled for pickup!'); 
+    closeModal('shipOrderModal'); 
+    loadOrders(); 
+  } else { 
+    showAdminToast(data?.message || 'Failed to manifest order.', 'error'); 
+  }
 });
 
 /* ── Load Products (Admin) ── */
