@@ -53,7 +53,7 @@ router.post('/create-order', async (req, res) => {
                     : coupon.discount_value;
             }
         }
-        const shipping = subtotal >= 2000 ? 0 : 150;
+        const shipping = subtotal >= 1000 ? 0 : 99;
         const codFee = req.body.payment_method === 'cod' ? 50 : 0;
         const total = subtotal + gst + shipping + codFee - discount;
         
