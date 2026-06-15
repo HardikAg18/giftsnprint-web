@@ -21,6 +21,15 @@ router.post('/create-order', async (req, res) => {
     try {
         const { items, customer, shipping_address, coupon_code } = req.body;
         
+        // Extract pincode from address text if the frontend passed a default/invalid one
+        let pincode = shipping_address.pincode || '000000';
+        if (!/^\d{6}$/.test(pincode)) {
+            const match = shipping_address.address.match(/\b\d{6}\b/);
+            if (match) {
+                pincode = match[0];
+            }
+        }
+        
         // Calculate totals
         let subtotal = 0;
         let gst = 0;
@@ -57,7 +66,7 @@ router.post('/create-order', async (req, res) => {
                 `INSERT INTO orders (order_id, customer_name, customer_email, customer_phone, customer_company, shipping_address, city, state, pincode, items, subtotal, gst_amount, shipping_amount, discount_amount, total_amount, payment_method, payment_status, order_status)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'cod', 'pending', 'confirmed')`,
                 [orderId, customer.name, customer.email, customer.phone, customer.company || null,
-                 shipping_address.address, shipping_address.city, shipping_address.state, shipping_address.pincode,
+                 shipping_address.address, shipping_address.city, shipping_address.state, pincode,
                  JSON.stringify(items), subtotal, gst, shipping, discount, total]
             );
 
@@ -67,7 +76,7 @@ router.post('/create-order', async (req, res) => {
                 customer_name: customer.name,
                 customer_phone: customer.phone,
                 shipping_address: shipping_address.address,
-                pincode: shipping_address.pincode,
+                pincode: pincode,
                 payment_method: 'cod',
                 total_amount: total
             });
@@ -76,9 +85,24 @@ router.post('/create-order', async (req, res) => {
                 await db.execute('UPDATE orders SET tracking_id = ? WHERE order_id = ?', [awb, orderId]);
             }
 
-            // Send Confirmation Email
+            // Send Confirmation Email to Customer
             const emailHtml = `<h2>Order Confirmed!</h2><p>Your Cash on Delivery order <b>${orderId}</b> for ₹${total} has been confirmed. Tracking AWB: ${awb || 'Pending'}.</p>`;
             await sendEmail({ to: customer.email, subject: `Order Confirmation - ${orderId}`, html: emailHtml });
+
+            // Send Alert Email to Admin
+            const adminEmailHtml = `
+                <h2>New COD Order Placed!</h2>
+                <p><b>Order ID:</b> ${orderId}</p>
+                <p><b>Customer:</b> ${customer.name} (${customer.email}, ${customer.phone})</p>
+                <p><b>Total Amount:</b> ₹${total} (Cash on Delivery)</p>
+                <p><b>Address:</b> ${shipping_address.address}, ${shipping_address.city}, ${shipping_address.state} - ${pincode}</p>
+                <p><a href="${process.env.SITE_URL || 'http://localhost:3000'}/admin">Go to Admin Dashboard</a></p>
+            `;
+            await sendEmail({
+                to: process.env.ADMIN_EMAIL || 'admin@giftsnprint.com',
+                subject: `ALERT: New COD Order Placed - ${orderId}`,
+                html: adminEmailHtml
+            });
 
             return res.json({ success: true, order_id: orderId, payment_method: 'cod' });
         }
@@ -100,7 +124,7 @@ router.post('/create-order', async (req, res) => {
             `INSERT INTO orders (order_id, customer_name, customer_email, customer_phone, customer_company, shipping_address, city, state, pincode, items, subtotal, gst_amount, shipping_amount, discount_amount, total_amount, razorpay_order_id)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [orderId, customer.name, customer.email, customer.phone, customer.company || null,
-             shipping_address.address, shipping_address.city, shipping_address.state, shipping_address.pincode,
+             shipping_address.address, shipping_address.city, shipping_address.state, pincode,
              JSON.stringify(items), subtotal, gst, shipping, discount, total, rzpOrder.id]
         );
         
@@ -160,6 +184,21 @@ router.post('/verify', async (req, res) => {
             // Send confirmation email
             const emailHtml = `<h2>Payment Successful!</h2><p>Your order <b>${order_id}</b> has been paid. Tracking AWB: ${awb || 'Pending'}.</p>`;
             await sendEmail({ to: ord.customer_email, subject: `Order Payment Successful - ${order_id}`, html: emailHtml });
+
+            // Send Alert Email to Admin
+            const adminEmailHtml = `
+                <h2>New Prepaid Order Placed & Paid!</h2>
+                <p><b>Order ID:</b> ${order_id}</p>
+                <p><b>Customer:</b> ${ord.customer_name} (${ord.customer_email}, ${ord.customer_phone})</p>
+                <p><b>Total Amount:</b> ₹${ord.total_amount} (Paid Online via Razorpay)</p>
+                <p><b>Address:</b> ${ord.shipping_address}, ${ord.city}, ${ord.state} - ${ord.pincode}</p>
+                <p><a href="${process.env.SITE_URL || 'http://localhost:3000'}/admin">Go to Admin Dashboard</a></p>
+            `;
+            await sendEmail({
+                to: process.env.ADMIN_EMAIL || 'admin@giftsnprint.com',
+                subject: `ALERT: New Prepaid Order Paid - ${order_id}`,
+                html: adminEmailHtml
+            });
         }
         
         res.json({ success: true, message: 'Payment verified successfully.', order_id });

@@ -56,7 +56,7 @@ app.get('/api/track/:orderId', async (req, res) => {
     try {
         const db = require('./server/config/database');
         const [orders] = await db.execute(
-            'SELECT order_id, customer_name, order_status, payment_status, total_amount, created_at, estimated_delivery, tracking_id FROM orders WHERE order_id = ?',
+            'SELECT order_id, customer_name, order_status, payment_status, total_amount, created_at, estimated_delivery, tracking_id, payment_method FROM orders WHERE order_id = ?',
             [req.params.orderId]
         );
         if (!orders.length) return res.status(404).json({ success: false, message: 'Order not found.' });

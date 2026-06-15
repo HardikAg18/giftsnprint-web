@@ -36,7 +36,7 @@ async function pushOrderToDelhivery(orderData) {
         const response = await fetch(API_BASE, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
                 'Authorization': `Token ${DELHIVERY_API_KEY}`
             },
             body: `format=json&data=${encodeURIComponent(JSON.stringify(payload.data))}`

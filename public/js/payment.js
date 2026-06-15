@@ -245,6 +245,21 @@ async function loadOrderSuccess() {
       document.getElementById('orderAmountDisplay').textContent = `₹${Number(o.total_amount).toLocaleString('en-IN')}`;
       document.getElementById('orderStatusDisplay').textContent = o.order_status;
       document.getElementById('orderCustomerDisplay').textContent = o.customer_name;
+
+      // Update UI labels dynamically if this was a Cash on Delivery order
+      if (o.payment_method === 'cod') {
+        // Change "Amount Paid" to "Amount to Pay on Delivery"
+        const amtLabel = document.getElementById('orderAmountDisplay').previousElementSibling;
+        if (amtLabel) {
+          amtLabel.textContent = 'Amount to Pay on Delivery';
+        }
+        
+        // Change the success description paragraph text
+        const descParagraph = document.querySelector('.container p');
+        if (descParagraph) {
+          descParagraph.textContent = "Thank you for your order! Your Cash on Delivery order is confirmed and will start processing right away.";
+        }
+      }
     }
   } catch (e) {}
 }
