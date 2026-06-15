@@ -137,6 +137,7 @@ window.loadOrders = async function(params = {}) {
             ? `<a href="https://www.delhivery.com/track/package/${o.tracking_id}" target="_blank" class="btn btn-outline btn-sm btn-icon" title="Track package" style="color:#10B981;border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.05)"><i class="fas fa-eye"></i></a>` 
             : `<button class="btn btn-outline btn-sm btn-icon" title="Ship with Delhivery" style="color:#10B981;border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.05)" onclick="openShipOrder('${o.id}','${o.order_id}')"><i class="fas fa-truck"></i></button>`
           }
+          <button class="btn btn-outline btn-sm btn-icon" title="Delete Order" style="color:#EF4444;border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.05)" onclick="deleteOrder('${o.id}','${o.order_id}')"><i class="fas fa-trash-alt"></i></button>
         </div>
         ${o.tracking_id ? `<div style="font-size:11px;margin-top:4px;color:var(--text-muted)">AWB: <b>${o.tracking_id}</b></div>` : ''}
       </td>
@@ -200,6 +201,18 @@ document.getElementById('shipOrderForm')?.addEventListener('submit', async (e) =
     showAdminToast(data?.message || 'Failed to manifest order.', 'error'); 
   }
 });
+
+window.deleteOrder = async function(id, orderId) {
+  if (confirm(`Are you sure you want to delete order ${orderId}? This action cannot be undone.`)) {
+    const data = await apiRequest(`/orders/${id}`, { method: 'DELETE' });
+    if (data?.success) {
+      showAdminToast('Order deleted successfully!');
+      loadOrders();
+    } else {
+      showAdminToast(data?.message || 'Failed to delete order.', 'error');
+    }
+  }
+};
 
 /* ── Load Products (Admin) ── */
 window.loadAdminProducts = async function(params = {}) {

@@ -129,4 +129,15 @@ router.post('/:id/ship', auth, async (req, res) => {
     }
 });
 
+// DELETE /api/orders/:id - Admin: delete order
+router.delete('/:id', auth, async (req, res) => {
+    try {
+        const [result] = await db.execute('DELETE FROM orders WHERE id = ?', [req.params.id]);
+        res.json({ success: true, message: 'Order deleted successfully.' });
+    } catch (err) {
+        console.error('Delete order error:', err);
+        res.status(500).json({ success: false, message: 'Server error during order deletion.' });
+    }
+});
+
 module.exports = router;
