@@ -34,9 +34,9 @@ async function pushOrderToDelhivery(orderData) {
                 }],
                 pickup_location: {
                     name: "Vikalp Advertising", // Required pickup point matching your Delhivery dashboard
-                    add: "Mansarovar",
+                    add: "120,city center ,sansar chand road",
                     city: "Jaipur",
-                    pin: "302020",
+                    pin: "302001",
                     country: "India",
                     phone: "9999999999"
                 }
