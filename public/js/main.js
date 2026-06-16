@@ -34,7 +34,41 @@ async function loadDynamicSettings() {
     }
   } catch(e) {}
 }
-document.addEventListener('DOMContentLoaded', loadDynamicSettings);
+
+async function populateCategoriesDropdown() {
+  const dropdown = document.querySelector('.dropdown-menu');
+  if (!dropdown) return;
+  try {
+    const res = await fetch('/api/products/categories');
+    const data = await res.json();
+    if (data.success && data.data) {
+      const categoryIcons = {
+        'custom-printing': 'fa-print',
+        'corporate-gifts': 'fa-briefcase',
+        'awards-trophies': 'fa-trophy',
+        'promotional-items': 'fa-bullhorn',
+        'advanced-printing': 'fa-layer-group',
+        'express-collection': 'fa-shipping-fast'
+      };
+      
+      let html = `<a href="/products.html"><i class="fas fa-boxes"></i> All Products</a>`;
+      data.data.forEach(c => {
+        const icon = c.icon || categoryIcons[c.slug] || 'fa-box';
+        const link = ['custom-printing', 'corporate-gifts', 'awards-trophies', 'promotional-items', 'advanced-printing', 'express-collection'].includes(c.slug)
+          ? `/category/${c.slug}.html`
+          : `/products.html?category=${c.slug}`;
+          
+        html += `<a href="${link}"><i class="fas ${icon}"></i> ${c.name}</a>`;
+      });
+      dropdown.innerHTML = html;
+    }
+  } catch(e) {}
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadDynamicSettings();
+  populateCategoriesDropdown();
+});
 
 /* ── Navbar ── */
 const navbar = document.getElementById('navbar');

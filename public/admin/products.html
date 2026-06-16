@@ -23,7 +23,7 @@
   <div class="sidebar-footer"><div class="sidebar-user"><div class="sidebar-avatar">A</div><div><div class="sidebar-username">Admin</div><div class="sidebar-role">Super Admin</div></div><button onclick="adminLogout()" style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px" title="Logout"><i class="fas fa-sign-out-alt"></i></button></div></div>
 </div>
 <div class="admin-main">
-<div class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="hamburger-admin" id="hamburgerAdmin"><i class="fas fa-bars"></i></button><div class="topbar-title">Products</div></div><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="openAddProduct()"><i class="fas fa-plus"></i> Add Product</button></div></div>
+<div class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="hamburger-admin" id="hamburgerAdmin"><i class="fas fa-bars"></i></button><div class="topbar-title">Products</div></div><div class="topbar-actions" style="display:flex;gap:8px"><button class="btn btn-outline btn-sm" onclick="openAddCategory()"><i class="fas fa-folder-plus"></i> Add Category</button><button class="btn btn-primary btn-sm" onclick="openAddProduct()"><i class="fas fa-plus"></i> Add Product</button></div></div>
 <div class="admin-content">
   <div class="admin-table-wrap">
     <div class="admin-table-header"><div class="admin-table-title">All Products</div><div class="search-box" style="width:240px"><i class="fas fa-search"></i><input type="text" id="productSearch" class="form-control" placeholder="Search products..."></div></div>
@@ -40,7 +40,7 @@
       <input type="hidden" id="editProductId" value="">
       <div class="form-row">
         <div class="form-group"><label class="form-label">Product Name *</label><input type="text" name="name" class="form-control" required placeholder="e.g. Custom T-Shirt"></div>
-        <div class="form-group"><label class="form-label">Category *</label><select name="category_id" class="form-control" required><option value="">Select</option><option value="1">Custom Printing</option><option value="2">Corporate Gifts</option><option value="3">Awards & Trophies</option><option value="4">Promotional Items</option><option value="5">Advanced Printing</option><option value="6">Express Collection</option></select></div>
+        <div class="form-group"><label class="form-label">Category *</label><select name="category_id" id="productCategorySelect" class="form-control" required><option value="">Loading...</option></select></div>
       </div>
       <div class="form-group"><label class="form-label">Short Description</label><input type="text" name="short_description" class="form-control" placeholder="One line summary"></div>
       <div class="form-group"><label class="form-label">Full Description</label><textarea name="description" class="form-control" rows="3"></textarea></div>
@@ -114,6 +114,28 @@
         <div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" name="is_active" value="1" checked> <span style="font-size:14px">Active Product</span></label></div>
       </div>
     </div><div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('addProductModal')">Cancel</button><button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Add Product</button></div></form>
+  </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal-overlay" id="addCategoryModal">
+  <div class="modal" style="max-width: 450px;">
+    <div class="modal-header"><h3>Add New Category</h3><button class="modal-close" onclick="closeModal('addCategoryModal')"><i class="fas fa-times"></i></button></div>
+    <form id="addCategoryForm">
+      <div class="modal-body">
+        <div id="addCategoryAlert"></div>
+        <div class="form-group"><label class="form-label">Category Name *</label><input type="text" name="name" class="form-control" required placeholder="e.g. Custom Bags"></div>
+        <div class="form-group"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="2" placeholder="e.g. Branded backpacks & tote bags"></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Icon (FontAwesome)</label><input type="text" name="icon" class="form-control" value="fa-box" placeholder="e.g. fa-shopping-bag"></div>
+          <div class="form-group"><label class="form-label">Sort Order</label><input type="number" name="sort_order" class="form-control" value="0"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('addCategoryModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Add Category</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -210,6 +232,24 @@ async function uploadToCloudinary(input) {
 }
 </script>
 <script>
+async function loadAdminCategories() {
+  const select = document.getElementById('productCategorySelect');
+  if (!select) return;
+  try {
+    const res = await fetch('/api/products/categories');
+    const data = await res.json();
+    if (data.success && data.data) {
+      let html = '<option value="">Select</option>';
+      data.data.forEach(c => {
+        html += `<option value="${c.id}">${c.name}</option>`;
+      });
+      select.innerHTML = html;
+    }
+  } catch (e) {
+    console.error('Failed to load categories for select:', e);
+  }
+}
+
 async function loadActiveOffers() {
   try {
     const res = await fetch('/api/coupons/active', { headers: { 'Authorization': 'Bearer ' + localStorage.getItem('gnp_admin_token') } });
@@ -224,8 +264,49 @@ async function loadActiveOffers() {
   } catch (err) { console.error('Failed to load offers', err); }
 }
 
+window.openAddCategory = function() {
+  document.getElementById('addCategoryForm').reset();
+  document.getElementById('addCategoryAlert').innerHTML = '';
+  openModal('addCategoryModal');
+};
+
+document.getElementById('addCategoryForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const alertBox = document.getElementById('addCategoryAlert');
+  
+  const data = {
+    name: form.name.value,
+    description: form.description.value,
+    icon: form.icon.value,
+    sort_order: parseInt(form.sort_order.value) || 0
+  };
+  
+  try {
+    const res = await fetch('/api/products/categories', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + localStorage.getItem('gnp_admin_token'),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+    const resData = await res.json();
+    if (resData.success) {
+      showAdminToast('Category added successfully!');
+      closeModal('addCategoryModal');
+      await loadAdminCategories(); // Refresh select dropdown
+    } else {
+      alertBox.innerHTML = `<div class="alert alert-error">${resData.message || 'Failed to add category.'}</div>`;
+    }
+  } catch (err) {
+    alertBox.innerHTML = `<div class="alert alert-error">Server error.</div>`;
+  }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   loadAdminProducts();
+  loadAdminCategories();
   loadActiveOffers();
   let t;
   document.getElementById('productSearch')?.addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => loadAdminProducts({ search: e.target.value }), 400); });

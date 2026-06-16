@@ -198,13 +198,48 @@ router.put('/:id', auth, async (req, res) => {
     }
 });
 
-// DELETE /api/products/:id
+// DELETE /api/products/:id - Hard delete product permanently
 router.delete('/:id', auth, async (req, res) => {
     try {
-        await db.execute('UPDATE products SET is_active = FALSE WHERE id = ?', [req.params.id]);
-        res.json({ success: true, message: 'Product deleted.' });
+        await db.execute('DELETE FROM products WHERE id = ?', [req.params.id]);
+        res.json({ success: true, message: 'Product deleted permanently.' });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Server error.' });
+        console.error('Delete product error:', error);
+        res.status(500).json({ success: false, message: 'Server error deleting product.' });
+    }
+});
+
+// POST /api/products/categories - Create new category (admin only)
+router.post('/categories', auth, async (req, res) => {
+    try {
+        const { name, description, icon, sort_order } = req.body;
+        if (!name) {
+            return res.status(400).json({ success: false, message: 'Category name is required.' });
+        }
+        
+        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        
+        const [result] = await db.execute(
+            'INSERT INTO categories (name, slug, description, icon, sort_order) VALUES (?, ?, ?, ?, ?)',
+            [name, slug, description || null, icon || 'fa-box', sort_order || 0]
+        );
+        
+        res.json({ success: true, message: 'Category created successfully.', categoryId: result.insertId });
+    } catch (error) {
+        console.error('Create category error:', error);
+        res.status(500).json({ success: false, message: 'Server error creating category.' });
+    }
+});
+
+// DELETE /api/products/categories/:id - Delete category (admin only)
+router.delete('/categories/:id', auth, async (req, res) => {
+    try {
+        // Soft delete category by setting is_active = FALSE
+        await db.execute('UPDATE categories SET is_active = FALSE WHERE id = ?', [req.params.id]);
+        res.json({ success: true, message: 'Category deleted successfully.' });
+    } catch (error) {
+        console.error('Delete category error:', error);
+        res.status(500).json({ success: false, message: 'Server error deleting category.' });
     }
 });
 

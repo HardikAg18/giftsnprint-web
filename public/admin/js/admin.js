@@ -234,18 +234,20 @@ window.loadAdminProducts = async function(params = {}) {
       <td>${p.total_orders || 0}</td>
       <td><span class="status ${p.is_active ? 'status-approved' : 'status-cancelled'}">${p.is_active ? 'Active' : 'Inactive'}</span></td>
       <td>
-        <button class="btn btn-outline btn-sm btn-icon" onclick="editProduct(${JSON.stringify(p).replace(/"/g,'&quot;')})"><i class="fas fa-edit"></i></button>
-        <button class="btn btn-danger btn-sm btn-icon" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="btn btn-outline btn-sm btn-icon" title="Edit Product" onclick="editProduct(${JSON.stringify(p).replace(/"/g,'&quot;')})"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-outline btn-sm btn-icon" title="Delete Product" style="color:#EF4444;border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.05)" onclick="deleteProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}')"><i class="fas fa-trash-alt"></i></button>
+        </div>
       </td>
     </tr>`).join('')
     : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px">No products found.</td></tr>';
 };
 
-window.deleteProduct = async function(id) {
-  if (!confirm('Are you sure you want to deactivate this product?')) return;
+window.deleteProduct = async function(id, name) {
+  if (!confirm(`Are you sure you want to permanently delete "${name}"? This action cannot be undone.`)) return;
   const data = await apiRequest(`/products/${id}`, { method: 'DELETE' });
-  if (data?.success) { showAdminToast('Product deactivated.'); loadAdminProducts(); }
-  else showAdminToast('Failed to deactivate product.', 'error');
+  if (data?.success) { showAdminToast('Product deleted permanently.'); loadAdminProducts(); }
+  else showAdminToast('Failed to delete product.', 'error');
 };
 
 /* ── Load Enquiries ── */

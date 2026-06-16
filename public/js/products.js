@@ -100,7 +100,7 @@ async function loadProducts(params = {}) {
 }
 
 /* ── Filters ── */
-function initFilters() {
+async function initFilters() {
   const searchInput = document.getElementById('searchInput');
   const sortSelect = document.getElementById('sortSelect');
   const categoryFilter = document.getElementById('categoryFilter');
@@ -113,6 +113,22 @@ function initFilters() {
     page: 1,
     limit: 12
   };
+
+  if (categoryFilter && categoryFilter.tagName === 'SELECT') {
+    try {
+      const res = await fetch(`${API_BASE}/products/categories`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        let html = `<option value="">All Categories</option>`;
+        data.data.forEach(c => {
+          html += `<option value="${c.slug}">${c.name}</option>`;
+        });
+        categoryFilter.innerHTML = html;
+      }
+    } catch (e) {
+      console.error('Failed to load dynamic categories:', e);
+    }
+  }
 
   if (activeParams.category && categoryFilter) {
     categoryFilter.value = activeParams.category;
