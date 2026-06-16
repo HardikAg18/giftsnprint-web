@@ -1,6 +1,31 @@
 // products.js — GiftsNPrint product listing & detail
 const API_BASE = '/api';
 
+/* ── Helper: Render Product Card ── */
+function renderProductCard(p) {
+  return `
+    <div class="card animate-fadeUp" onclick="window.location.href='/product-detail.html?slug=${p.slug}'">
+      <div class="card-img-wrap">
+        <img src="${p.image_url || '/images/hero_banner.png'}" alt="${p.name}" class="card-img" loading="lazy" onerror="this.src='/images/hero_banner.png'">
+        ${p.is_featured ? '<span class="card-badge">Featured</span>' : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-category">${p.category_name}</div>
+        <h3 class="card-title">${p.name}</h3>
+        <p class="card-desc">${p.short_description || ''}</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+          <div class="card-price">₹${Number(p.base_price).toLocaleString('en-IN')}<span class="card-price-unit">/${p.unit_type || 'pcs'}</span></div>
+          <div class="rating"><i class="fas fa-star"></i> ${p.rating || '4.8'}</div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span style="font-size:12px;color:var(--text-muted)">Min. ${p.min_order_qty || 25} units</span>
+        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();window.location.href='/product-detail.html?slug=${p.slug}'">View Details</button>
+      </div>
+    </div>
+  `;
+}
+
 /* ── Product Listing Page ── */
 async function loadProducts(params = {}) {
   const grid = document.getElementById('productsGrid');
@@ -9,6 +34,11 @@ async function loadProducts(params = {}) {
 
   loader?.classList.remove('hidden');
   grid.innerHTML = '';
+
+  const isGroupedView = !params.category && !params.search && (!params.sort || params.sort === 'default');
+  if (isGroupedView) {
+    params.limit = 100;
+  }
 
   const qs = new URLSearchParams(params).toString();
   try {
@@ -21,27 +51,43 @@ async function loadProducts(params = {}) {
       return;
     }
 
-    grid.innerHTML = data.data.map(p => `
-      <div class="card animate-fadeUp" onclick="window.location.href='/product-detail.html?slug=${p.slug}'">
-        <div class="card-img-wrap">
-          <img src="${p.image_url || '/images/hero_banner.png'}" alt="${p.name}" class="card-img" loading="lazy" onerror="this.src='/images/hero_banner.png'">
-          ${p.is_featured ? '<span class="card-badge">Featured</span>' : ''}
-        </div>
-        <div class="card-body">
-          <div class="card-category">${p.category_name}</div>
-          <h3 class="card-title">${p.name}</h3>
-          <p class="card-desc">${p.short_description || ''}</p>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
-            <div class="card-price">₹${Number(p.base_price).toLocaleString('en-IN')}<span class="card-price-unit">/${p.unit_type || 'pcs'}</span></div>
-            <div class="rating"><i class="fas fa-star"></i> ${p.rating || '4.8'}</div>
+    if (isGroupedView) {
+      const grouped = {};
+      data.data.forEach(p => {
+        if (!grouped[p.category_name]) {
+          grouped[p.category_name] = [];
+        }
+        grouped[p.category_name].push(p);
+      });
+
+      const categoryOrder = {
+        'Custom Printing': 1,
+        'Corporate Gifts': 2,
+        'Awards & Trophies': 3,
+        'Promotional Items': 4,
+        'Advanced Printing': 5,
+        'Express Collection': 6
+      };
+
+      const sortedCategories = Object.keys(grouped).sort((a, b) => {
+        return (categoryOrder[a] || 99) - (categoryOrder[b] || 99);
+      });
+
+      grid.innerHTML = sortedCategories.map(catName => `
+        <div class="category-group-section" style="margin-bottom: 48px; width: 100%">
+          <h2 class="category-group-title" style="font-family:'Outfit', sans-serif; font-size:24px; font-weight:800; border-left:4px solid var(--accent); padding-left:12px; margin-bottom:20px; color:var(--text)">${catName}</h2>
+          <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:24px; width: 100%">
+            ${grouped[catName].map(p => renderProductCard(p)).join('')}
           </div>
         </div>
-        <div class="card-footer">
-          <span style="font-size:12px;color:var(--text-muted)">Min. ${p.min_order_qty || 25} units</span>
-          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();window.location.href='/product-detail.html?slug=${p.slug}'">View Details</button>
-        </div>
-      </div>
-    `).join('');
+      `).join('');
+      grid.style.display = 'block';
+    } else {
+      grid.style.display = 'grid';
+      grid.style.gridTemplateColumns = 'repeat(auto-fill,minmax(260px,1fr))';
+      grid.style.gap = '24px';
+      grid.innerHTML = data.data.map(p => renderProductCard(p)).join('');
+    }
 
     document.querySelectorAll('.animate-fadeUp').forEach((el, i) => {
       el.style.animationDelay = `${i * 0.06}s`;
