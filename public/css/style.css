@@ -264,7 +264,80 @@ select.form-control option{background:var(--surface2)}
 
 
 /* --- Hildenkaira Custom Cursor & UI Enhancements --- */
-body, a, button, .hover-target { cursor: none !important; }
+@media (pointer: fine) {
+  body, a, button, .hover-target { cursor: none !important; }
+}
+
+@media (pointer: coarse), (max-width: 768px) {
+  .cursor-dot, .cursor-outline, .cursor-glow { display: none !important; }
+  body, a, button, .hover-target { cursor: auto !important; }
+}
+
+/* Extra responsiveness updates for general layout elements */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+@media(max-width:768px){
+  /* Collapse inline-styled 2-column grids (about, cart, checkout, contact, quote pages) */
+  div[style*="grid-template-columns:1fr 1fr"],
+  div[style*="grid-template-columns: 1fr 1fr"],
+  div[style*="grid-template-columns:1fr 360px"],
+  div[style*="grid-template-columns: 1fr 360px"],
+  div[style*="grid-template-columns:1fr 380px"],
+  div[style*="grid-template-columns: 1fr 380px"],
+  div[style*="grid-template-columns:1fr 1.5fr"],
+  div[style*="grid-template-columns: 1fr 1.5fr"],
+  div[style*="grid-template-columns:1.5fr 1fr"],
+  div[style*="grid-template-columns: 1.5fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+
+  /* Make filters container elements full width on products/categories listing */
+  div[style*="margin-bottom:32px"][style*="display:flex"] {
+    flex-direction: column !important;
+    gap: 12px !important;
+    padding: 16px !important;
+  }
+  div[style*="margin-bottom:32px"][style*="display:flex"] > select,
+  div[style*="margin-bottom:32px"][style*="display:flex"] > div {
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+  
+  /* Prevent sticky layout overlaps on mobile checkout and cart summaries */
+  #cartSummary, #orderSummaryWrapper {
+    position: static !important;
+    margin-top: 24px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Stack side-by-side icon service blocks on services.html */
+  .grid[style*="gap:40px"] > div {
+    grid-template-columns: 1fr !important;
+    text-align: center;
+    padding: 24px 16px !important;
+    gap: 16px !important;
+  }
+  .grid[style*="gap:40px"] .feature-icon {
+    margin: 0 auto 12px !important;
+  }
+}
+
+@media(max-width:480px){
+  /* Prevent card grid overflow on homepage testimonials */
+  .grid[style*="minmax(300px,1fr)"],
+  .grid[style*="minmax(300px, 1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+  .track-container {
+    padding: 20px 16px !important;
+    margin: 60px 16px !important;
+  }
+}
 
 .cursor-dot {
     width: 8px; height: 8px;

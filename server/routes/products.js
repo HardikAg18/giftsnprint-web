@@ -16,6 +16,16 @@ cloudinary.config({
 
 const upload = multer({ storage: multer.memoryStorage() });
 
+function getDeterministicRating(name) {
+    let hash = 0;
+    const str = name || '';
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const offset = (Math.abs(hash) % 31) / 100; // 0.00 to 0.30
+    return (4.6 + offset).toFixed(2);
+}
+
 // GET /api/products - List all products (public)
 router.get('/', async (req, res) => {
     try {
@@ -45,6 +55,14 @@ router.get('/', async (req, res) => {
         for (let product of products) {
             const [tiers] = await db.execute('SELECT * FROM pricing_tiers WHERE product_id = ? ORDER BY min_qty', [product.id]);
             product.pricing_tiers = tiers;
+            
+            // Deterministic rating fallback
+            const ratingVal = parseFloat(product.rating);
+            if (!ratingVal || ratingVal <= 0) {
+                product.rating = getDeterministicRating(product.name);
+            } else {
+                product.rating = ratingVal.toFixed(2);
+            }
         }
         
         res.json({ success: true, data: products });
@@ -81,6 +99,14 @@ router.get('/:slug', async (req, res) => {
         const [tiers] = await db.execute('SELECT * FROM pricing_tiers WHERE product_id = ? ORDER BY min_qty', [product.id]);
         product.pricing_tiers = tiers;
         
+        // Deterministic rating fallback for main product
+        const ratingVal = parseFloat(product.rating);
+        if (!ratingVal || ratingVal <= 0) {
+            product.rating = getDeterministicRating(product.name);
+        } else {
+            product.rating = ratingVal.toFixed(2);
+        }
+        
         // Get approved reviews
         const [reviews] = await db.execute(
             'SELECT * FROM reviews WHERE product_id = ? AND is_approved = TRUE ORDER BY created_at DESC LIMIT 10',
@@ -93,6 +119,14 @@ router.get('/:slug', async (req, res) => {
             'SELECT id, name, slug, base_price, image_url, rating FROM products WHERE category_id = ? AND id != ? AND is_active = TRUE LIMIT 4',
             [product.category_id, product.id]
         );
+        for (let relP of related) {
+            const relRatingVal = parseFloat(relP.rating);
+            if (!relRatingVal || relRatingVal <= 0) {
+                relP.rating = getDeterministicRating(relP.name);
+            } else {
+                relP.rating = relRatingVal.toFixed(2);
+            }
+        }
         product.related_products = related;
         // Fetch active offer if attached
         if (product.offer_id) {

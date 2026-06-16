@@ -174,7 +174,25 @@ async function loadProductDetail() {
     document.getElementById('productCategory').textContent = p.category_name;
     document.getElementById('productDesc').textContent = p.description || p.short_description || '';
     document.getElementById('productPrice').textContent = `₹${Number(p.base_price).toLocaleString('en-IN')} / ${p.unit_type || 'pcs'}`;
-    document.getElementById('productRating').textContent = p.rating || '4.8';
+    // Render dynamic stars in container
+    const ratingContainer = document.querySelector('.product-layout .rating');
+    if (ratingContainer) {
+      const ratingVal = parseFloat(p.rating) || 4.8;
+      let starsHtml = '';
+      for (let i = 1; i <= 5; i++) {
+        if (i <= Math.floor(ratingVal)) {
+          starsHtml += '<i class="fas fa-star"></i>';
+        } else if (i - 0.5 <= ratingVal) {
+          starsHtml += '<i class="fas fa-star-half-alt"></i>';
+        } else {
+          starsHtml += '<i class="far fa-star"></i>';
+        }
+      }
+      ratingContainer.innerHTML = `${starsHtml} <span id="productRating">${ratingVal.toFixed(2)}</span>`;
+    } else {
+      const pr = document.getElementById('productRating');
+      if (pr) pr.textContent = p.rating || '4.8';
+    }
     document.getElementById('productOrders').textContent = p.total_orders || '100';
     document.getElementById('minQtyHint').textContent = `Minimum order: ${p.min_order_qty || 1} ${p.unit_type || 'pcs'}`;
 
