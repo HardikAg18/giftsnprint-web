@@ -325,7 +325,7 @@ pm2 stop giftsnprint  # Stop server
 
 ## 📞 Support
 
-**GiftsNPrint** — info@giftsnprint.com | +91 98765 43210
+**GiftsNPrint** — info.giftsnprint@gmail.com | +91 98765 43210
 
 ---
 

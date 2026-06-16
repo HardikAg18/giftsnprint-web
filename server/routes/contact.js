@@ -69,7 +69,7 @@ router.get('/chatbot', (req, res) => {
     else if (msg.includes('hello') || msg.includes('hi') || msg.includes('hey'))
         response = { text: 'Hello! Welcome to GiftsNPrint! 👋 How can I help you today?', buttons: [{ text: 'Our Products', url: '/products.html' }, { text: 'Get Quote', url: '/quote.html' }] };
     else if (msg.includes('contact') || msg.includes('phone') || msg.includes('call'))
-        response = { text: '📞 Call/WhatsApp: +91 XXXXXXXXXX\n📧 info@giftsnprint.com\n🕐 Mon-Sat 9AM-7PM', buttons: [{ text: 'Contact Page', url: '/contact.html' }] };
+        response = { text: '📞 Call/WhatsApp: +91 XXXXXXXXXX\n📧 info.giftsnprint@gmail.com\n🕐 Mon-Sat 9AM-7PM', buttons: [{ text: 'Contact Page', url: '/contact.html' }] };
     else
         response = { text: 'For detailed help, connect with our team directly! Mon-Sat 9AM-7PM 😊', buttons: [{ text: 'WhatsApp Us', url: 'https://wa.me/91XXXXXXXXXX' }, { text: 'Get Quote', url: '/quote.html' }] };
     res.json({ success: true, response });

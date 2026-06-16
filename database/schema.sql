@@ -212,7 +212,7 @@ CREATE TABLE coupons (
 
 -- Default Admin (password: GiftsNPrint@Admin123)
 INSERT INTO admin_users (username, email, password, role) VALUES
-('admin', 'admin@giftsnprint.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', 'super_admin');
+('admin', 'info.giftsnprint@gmail.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', 'super_admin');
 -- Default password: GiftsNPrint@Admin123 — CHANGE THIS IMMEDIATELY after first login!
 
 -- Default Categories

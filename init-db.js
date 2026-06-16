@@ -16,7 +16,7 @@ async function run() {
 
         await client.query(`
             INSERT INTO admin_users (username, email, password, role) 
-            VALUES ('admin', 'admin@giftsnprint.com', '$2a$10$VvEshvigaE5l2WMXTRudOu9I2NIWNWgt6v8AmpDRNWU4EWWUpsneK', 'super_admin') 
+            VALUES ('admin', 'info.giftsnprint@gmail.com', '$2a$10$VvEshvigaE5l2WMXTRudOu9I2NIWNWgt6v8AmpDRNWU4EWWUpsneK', 'super_admin') 
             ON CONFLICT (username) DO NOTHING;
         `);
         console.log('Admin user seeded');

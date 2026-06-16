@@ -84,7 +84,7 @@ router.post('/create-order', async (req, res) => {
                 <p><a href="${process.env.SITE_URL || 'http://localhost:3000'}/admin">Go to Admin Dashboard</a></p>
             `;
             await sendEmail({
-                to: process.env.ADMIN_EMAIL || 'admin@giftsnprint.com',
+                to: process.env.ADMIN_EMAIL || 'info.giftsnprint@gmail.com',
                 subject: `ALERT: New COD Order Placed - ${orderId}`,
                 html: adminEmailHtml
             });
@@ -166,7 +166,7 @@ router.post('/verify', async (req, res) => {
                 <p><a href="${process.env.SITE_URL || 'http://localhost:3000'}/admin">Go to Admin Dashboard</a></p>
             `;
             await sendEmail({
-                to: process.env.ADMIN_EMAIL || 'admin@giftsnprint.com',
+                to: process.env.ADMIN_EMAIL || 'info.giftsnprint@gmail.com',
                 subject: `ALERT: New Prepaid Order Paid - ${order_id}`,
                 html: adminEmailHtml
             });
