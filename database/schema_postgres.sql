@@ -199,6 +199,16 @@ CREATE TABLE coupons (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Projects (Gallery)
+CREATE TABLE projects (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    image_url VARCHAR(500) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Insert Default Admin (password: GiftsNPrint@Admin123)
 INSERT INTO admin_users (username, email, password, role) VALUES
 ('admin', 'info.giftsnprint@gmail.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', 'super_admin');

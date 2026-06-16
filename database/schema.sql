@@ -206,6 +206,16 @@ CREATE TABLE coupons (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Projects (Gallery)
+CREATE TABLE projects (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    image_url VARCHAR(500) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- =============================================
 -- Insert Default Data
 -- =============================================

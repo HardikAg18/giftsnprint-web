@@ -50,6 +50,7 @@ app.use('/api/reviews', require('./server/routes/reviews'));
 app.use('/api/settings', require('./server/routes/settings'));
 app.use('/api/customers', require('./server/routes/customers'));
 app.use('/api/coupons', require('./server/routes/coupons'));
+app.use('/api/projects', require('./server/routes/projects'));
 
 // Order tracking (public)
 app.get('/api/track/:orderId', async (req, res) => {

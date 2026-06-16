@@ -1,0 +1,204 @@
+<!DOCTYPE html><html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Gallery - GiftsNPrint Admin</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="/admin/css/admin.css"></head>
+<body>
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header"><div class="sidebar-logo">GiftsNPrint</div><div class="sidebar-sub">Admin Dashboard</div></div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Main</div>
+    <a href="/admin/index.html" class="nav-item" data-page="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="/admin/orders.html" class="nav-item" data-page="orders.html"><i class="fas fa-shopping-bag"></i> Orders <span class="nav-badge" id="pendingBadge">0</span></a>
+    <a href="/admin/products.html" class="nav-item" data-page="products.html"><i class="fas fa-box-open"></i> Products</a>
+    <a href="/admin/offers.html" class="nav-item" data-page="offers.html"><i class="fas fa-tags"></i> Offers & Promos</a>
+    <div class="nav-group-label">Customer</div>
+    <a href="/admin/customers.html" class="nav-item" data-page="customers.html"><i class="fas fa-users"></i> Customers</a>
+    <a href="/admin/enquiries.html" class="nav-item" data-page="enquiries.html"><i class="fas fa-envelope"></i> Enquiries</a>
+    <a href="/admin/reviews.html" class="nav-item" data-page="reviews.html"><i class="fas fa-star"></i> Reviews</a>
+    <div class="nav-group-label">Settings</div>
+    <a href="/admin/settings.html" class="nav-item" data-page="settings.html"><i class="fas fa-cog"></i> Settings</a>
+    <a href="/admin/gallery.html" class="nav-item" data-page="gallery.html"><i class="fas fa-images"></i> Gallery</a>
+    <a href="/" class="nav-item" target="_blank"><i class="fas fa-external-link-alt"></i> View Website</a>
+  </nav>
+  <div class="sidebar-footer"><div class="sidebar-user"><div class="sidebar-avatar">A</div><div><div class="sidebar-username">Admin</div><div class="sidebar-role">Super Admin</div></div><button onclick="adminLogout()" style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px" title="Logout"><i class="fas fa-sign-out-alt"></i></button></div></div>
+</div>
+<div class="admin-main">
+  <div class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="hamburger-admin" id="hamburgerAdmin"><i class="fas fa-bars"></i></button><div class="topbar-title">Gallery Manager</div></div><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="openAddProject()"><i class="fas fa-plus"></i> Add Project</button></div></div>
+  <div class="admin-content">
+    <div class="admin-table-wrap">
+      <div class="admin-table-header"><div class="admin-table-title">Our Showcase Projects</div></div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="adminGalleryTbody">
+          <tr><td colspan="5" style="text-align:center;padding:40px"><div class="loader"><div class="spinner"></div></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Add Project Modal -->
+<div class="modal-overlay" id="addProjectModal">
+  <div class="modal" style="max-width: 500px;">
+    <div class="modal-header"><h3>Add New Project</h3><button class="modal-close" onclick="closeModal('addProjectModal')"><i class="fas fa-times"></i></button></div>
+    <form id="addProjectForm">
+      <div class="modal-body">
+        <div id="addProjectAlert"></div>
+        <div class="form-group"><label class="form-label">Project Title *</label><input type="text" id="projectTitle" class="form-control" required placeholder="e.g. Branded Hoodie Printing"></div>
+        <div class="form-group"><label class="form-label">Category *</label>
+          <select id="projectCategory" class="form-control" required>
+            <option value="">Select Category</option>
+            <option value="custom">Custom Printing</option>
+            <option value="corporate">Corporate Gifts</option>
+            <option value="awards">Awards & Trophies</option>
+            <option value="promotional">Promotional Items</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Description (Optional)</label><textarea id="projectDesc" class="form-control" rows="3" placeholder="Brief description of the work done..."></textarea></div>
+        <div class="form-group">
+          <label class="form-label">Project Image *</label>
+          <div style="display:flex;gap:8px">
+            <input type="url" id="projectImageUrl" class="form-control" required placeholder="https://example.com/image.jpg">
+            <button type="button" class="btn btn-outline" style="white-space:nowrap" onclick="document.getElementById('projectCloudinaryUpload').click()"><i class="fas fa-upload"></i> Upload</button>
+          </div>
+          <input type="file" id="projectCloudinaryUpload" accept="image/*" style="display:none" onchange="uploadProjectImage(this)">
+          <div id="projectUploadStatus" style="font-size:12px;margin-top:6px;font-weight:600"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('addProjectModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="projectSubmitBtn"><i class="fas fa-plus"></i> Add Project</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/admin/js/admin.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    requireAuth();
+    loadAdminGallery();
+});
+
+async function loadAdminGallery() {
+    const tbody = document.getElementById('adminGalleryTbody');
+    if (!tbody) return;
+    const data = await apiRequest('/projects');
+    if (!data?.success) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:40px">Error loading gallery items.</td></tr>';
+        return;
+    }
+    
+    const categoryLabels = {
+        custom: 'Custom Printing',
+        corporate: 'Corporate Gifts',
+        awards: 'Awards & Trophies',
+        promotional: 'Promotional Items'
+    };
+
+    tbody.innerHTML = data.data.length ? data.data.map(p => `
+      <tr>
+        <td><img src="${p.image_url}" style="width:60px;height:60px;object-fit:cover;border-radius:6px"></td>
+        <td><strong>${p.title}</strong></td>
+        <td><span class="status status-processing">${categoryLabels[p.category] || p.category}</span></td>
+        <td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.description || '—'}</td>
+        <td>
+          <button class="btn btn-outline btn-sm btn-icon" title="Delete Project" style="color:#EF4444;border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.05)" onclick="deleteProject('${p.id}','${p.title}')"><i class="fas fa-trash-alt"></i></button>
+        </td>
+      </tr>`).join('')
+      : '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:40px">No gallery items found. Click "Add Project" to upload your first work!</td></tr>';
+}
+
+function openAddProject() {
+    document.getElementById('addProjectForm').reset();
+    document.getElementById('projectUploadStatus').textContent = '';
+    document.getElementById('addProjectAlert').innerHTML = '';
+    openModal('addProjectModal');
+}
+
+async function uploadProjectImage(input) {
+    if (!input.files || input.files.length === 0) return;
+    const status = document.getElementById('projectUploadStatus');
+    const urlInput = document.getElementById('projectImageUrl');
+    
+    status.textContent = 'Uploading to Cloudinary...';
+    status.style.color = 'var(--primary)';
+    
+    const formData = new FormData();
+    formData.append('image', input.files[0]);
+    
+    try {
+        const res = await fetch('/api/products/upload-image', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('gnp_admin_token') },
+            body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+            status.textContent = 'Upload successful!';
+            status.style.color = '#10b981';
+            urlInput.value = data.url;
+        } else {
+            status.textContent = 'Upload failed: ' + data.message;
+            status.style.color = '#ef4444';
+        }
+    } catch (error) {
+        status.textContent = 'Upload failed: Network error.';
+        status.style.color = '#ef4444';
+    }
+}
+
+document.getElementById('addProjectForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const alertBox = document.getElementById('addProjectAlert');
+    const btn = document.getElementById('projectSubmitBtn');
+    
+    const title = document.getElementById('projectTitle').value;
+    const category = document.getElementById('projectCategory').value;
+    const description = document.getElementById('projectDesc').value;
+    const image_url = document.getElementById('projectImageUrl').value;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    
+    const data = await apiRequest('/projects', {
+        method: 'POST',
+        body: JSON.stringify({ title, category, description, image_url })
+    });
+    
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-plus"></i> Add Project';
+    
+    if (data?.success) {
+        showAdminToast('Showcase project added successfully!');
+        closeModal('addProjectModal');
+        loadAdminGallery();
+        if (window.updateSidebarBadge) window.updateSidebarBadge();
+    } else {
+        alertBox.innerHTML = `<div class="alert alert-error">${data?.message || 'Failed to save project.'}</div>`;
+    }
+});
+
+async function deleteProject(id, title) {
+    if (confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
+        const data = await apiRequest(`/projects/${id}`, { method: 'DELETE' });
+        if (data?.success) {
+            showAdminToast('Project deleted successfully!');
+            loadAdminGallery();
+        } else {
+            showAdminToast(data?.message || 'Failed to delete project.', 'error');
+        }
+    }
+}
+</script>
+<script src="/js/cursor.js"></script>
+</body>
+</html>
