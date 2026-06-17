@@ -7,7 +7,7 @@ const auth = require('../middleware/auth');
 router.get('/', auth, async (req, res) => {
     try {
         const { status, page = 1, limit = 20, search } = req.query;
-        let query = 'SELECT * FROM orders WHERE 1=1';
+        let query = "SELECT * FROM orders WHERE (payment_method != 'razorpay' OR payment_status = 'paid')";
         const params = [];
         if (status) { query += ' AND order_status = ?'; params.push(status); }
         if (search) { query += ' AND (order_id LIKE ? OR customer_name LIKE ? OR customer_email LIKE ?)'; params.push(`%${search}%`, `%${search}%`, `%${search}%`); }
@@ -15,7 +15,7 @@ router.get('/', auth, async (req, res) => {
         const offset = (page - 1) * limit;
         query += ` LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`;
         const [orders] = await db.execute(query, params);
-        const [total] = await db.execute('SELECT COUNT(*) as count FROM orders');
+        const [total] = await db.execute("SELECT COUNT(*) as count FROM orders WHERE (payment_method != 'razorpay' OR payment_status = 'paid')");
         res.json({ success: true, data: orders, total: total[0].count });
     } catch (err) { res.status(500).json({ success: false, message: 'Server error.' }); }
 });
@@ -23,11 +23,11 @@ router.get('/', auth, async (req, res) => {
 // GET /api/orders/stats - Dashboard stats
 router.get('/stats', auth, async (req, res) => {
     try {
-        const [totalOrders] = await db.execute('SELECT COUNT(*) as count FROM orders');
+        const [totalOrders] = await db.execute("SELECT COUNT(*) as count FROM orders WHERE (payment_method != 'razorpay' OR payment_status = 'paid')");
         const [totalRevenue] = await db.execute("SELECT SUM(total_amount) as total FROM orders WHERE payment_status = 'paid'");
-        const [pendingOrders] = await db.execute("SELECT COUNT(*) as count FROM orders WHERE order_status IN ('pending', 'confirmed', 'processing')");
-        const [totalCustomers] = await db.execute('SELECT COUNT(DISTINCT customer_email) as count FROM orders');
-        const [recentOrders] = await db.execute('SELECT * FROM orders ORDER BY created_at DESC LIMIT 5');
+        const [pendingOrders] = await db.execute("SELECT COUNT(*) as count FROM orders WHERE (payment_method != 'razorpay' OR payment_status = 'paid') AND order_status IN ('pending', 'confirmed', 'processing')");
+        const [totalCustomers] = await db.execute("SELECT COUNT(DISTINCT customer_email) as count FROM orders WHERE (payment_method != 'razorpay' OR payment_status = 'paid')");
+        const [recentOrders] = await db.execute("SELECT * FROM orders WHERE (payment_method != 'razorpay' OR payment_status = 'paid') ORDER BY created_at DESC LIMIT 5");
         const [monthlyRevenue] = await db.execute(`
             SELECT TO_CHAR(created_at, 'YYYY-MM') as month, SUM(total_amount) as revenue, COUNT(*) as orders
             FROM orders WHERE payment_status = 'paid' AND created_at >= NOW() - INTERVAL '6 MONTH'
@@ -57,7 +57,7 @@ router.put('/:id/status', auth, async (req, res) => {
 // GET /api/orders/:id - Single order detail
 router.get('/:id', auth, async (req, res) => {
     try {
-        const [orders] = await db.execute('SELECT * FROM orders WHERE id = ? OR order_id = ?', [req.params.id, req.params.id]);
+        const [orders] = await db.execute("SELECT * FROM orders WHERE (id = ? OR order_id = ?) AND (payment_method != 'razorpay' OR payment_status = 'paid')", [req.params.id, req.params.id]);
         if (!orders.length) return res.status(404).json({ success: false, message: 'Order not found.' });
         res.json({ success: true, data: orders[0] });
     } catch (err) { res.status(500).json({ success: false, message: 'Server error.' }); }
@@ -69,7 +69,7 @@ router.post('/:id/ship', auth, async (req, res) => {
         const { pickup_date, pickup_time } = req.body;
         if (!pickup_date) return res.status(400).json({ success: false, message: 'Pickup date is required.' });
 
-        const [orders] = await db.execute('SELECT * FROM orders WHERE id = ?', [req.params.id]);
+        const [orders] = await db.execute("SELECT * FROM orders WHERE id = ? AND (payment_method != 'razorpay' OR payment_status = 'paid')", [req.params.id]);
         if (!orders.length) return res.status(404).json({ success: false, message: 'Order not found.' });
         
         const ord = orders[0];
