@@ -43,25 +43,51 @@ window.updateCheckoutCart = function(index, delta) {
     const codFee = paymentMethod === 'cod' ? 50 : 0;
     const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
     const gst = Math.round(cart.reduce((s, i) => s + (i.price * i.qty * (parseFloat(i.gst_percent) || 18) / 100), 0));
-    const shipping = subtotal >= 1000 ? 0 : 99;
+    const shipping = subtotal >= 999 ? 0 : 99;
     let total = subtotal + gst + shipping + codFee - appliedDiscount;
     if (total < 0) total = 0;
 
+    let alertHtml = '';
+    if (subtotal >= 999) {
+      alertHtml = `
+        <div class="shipping-alert success" style="background:#ecfdf5; border:1px solid #d1fae5; color:#047857; padding:12px; border-radius:12px; font-size:13.5px; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+          <i class="fas fa-truck-fast" style="color:#10b981;"></i> <span>🎉 <b>Yayy! You got free shipping!</b></span>
+        </div>`;
+    } else {
+      const remaining = 999 - subtotal;
+      const pct = Math.min(100, (subtotal / 999) * 100);
+      alertHtml = `
+        <div class="shipping-alert info" style="background:#fffbeb; border:1px solid #fef3c7; color:#b45309; padding:12px; border-radius:12px; font-size:13.5px; font-weight:600; margin-bottom:16px; display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <i class="fas fa-shipping-fast" style="color:#d97706;"></i>
+            <span>Add <b>₹${remaining.toLocaleString('en-IN')}</b> more to get free shipping!</span>
+          </div>
+          <div style="width:100%; height:6px; background:#e5e7eb; border-radius:3px; overflow:hidden;">
+            <div style="width:${pct}%; height:100%; background:#f59e0b; border-radius:3px; transition: width 0.4s ease;"></div>
+          </div>
+        </div>`;
+    }
+
     summaryEl.classList.remove('loader');
     summaryEl.innerHTML = `
-      ${cart.map((i, index) => `
-        <div class="summary-item" style="display:flex; flex-direction:column; gap:8px;">
+      ${alertHtml}
+      ${cart.map((i, index) => {
+        const itemInclusivePrice = i.price * (1 + (parseFloat(i.gst_percent) || 18) / 100);
+        return `
+        <div class="summary-item" style="display:flex; flex-direction:column; gap:6px;">
           <div style="display:flex; justify-content:space-between; width:100%;">
             <span>${i.name}</span>
-            <span>₹${(i.price * i.qty).toLocaleString('en-IN')}</span>
+            <span>₹${(itemInclusivePrice * i.qty).toLocaleString('en-IN')}</span>
           </div>
-          <div style="display:flex; align-items:center; gap:10px; font-size:14px;">
+          <div style="display:flex; align-items:center; gap:10px; font-size:14px; margin-top:2px;">
             <button onclick="updateCheckoutCart(${index}, -1)" style="border:1px solid var(--border); background:var(--surface); padding:2px 8px; border-radius:4px; cursor:pointer;">-</button>
             <span>${i.qty}</span>
             <button onclick="updateCheckoutCart(${index}, 1)" style="border:1px solid var(--border); background:var(--surface); padding:2px 8px; border-radius:4px; cursor:pointer;">+</button>
             <button onclick="updateCheckoutCart(${index}, -${i.qty})" style="color:var(--error); background:none; border:none; font-size:12px; cursor:pointer; margin-left:10px;"><i class="ri-delete-bin-line"></i> Remove</button>
           </div>
-        </div>`).join('')}
+          ${i.no_return ? `<div style="font-size:11px;color:#EF4444;font-weight:600;margin-top:2px;margin-bottom:2px;"><i class="fas fa-exclamation-circle"></i> Non-Returnable</div>` : ''}
+        </div>`;
+      }).join('')}
       <div class="summary-divider"></div>
       <div class="summary-item"><span>Subtotal</span><span>₹${subtotal.toLocaleString('en-IN')}</span></div>
       <div class="summary-item"><span>GST</span><span>₹${gst.toLocaleString('en-IN')}</span></div>

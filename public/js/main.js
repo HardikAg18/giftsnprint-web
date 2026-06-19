@@ -65,7 +65,33 @@ async function populateCategoriesDropdown() {
   } catch(e) {}
 }
 
+function initAnnouncementBar() {
+  if (document.querySelector('.announcement-bar')) return;
+  const bar = document.createElement('div');
+  bar.className = 'announcement-bar';
+  const offers = [
+    { text: 'COD Available', icon: 'fa-truck-moving' },
+    { text: 'Free Shipping Above ₹999', icon: 'fa-shipping-fast' },
+    { text: 'Offers Available', icon: 'fa-tags' },
+    { text: 'Upto 50% Off', icon: 'fa-percent' },
+    { text: 'Flat 15% Off on 1st Order', icon: 'fa-gift' }
+  ];
+  const repeatedOffers = [...offers, ...offers, ...offers, ...offers];
+  const content = document.createElement('div');
+  content.className = 'announcement-content';
+  repeatedOffers.forEach(offer => {
+    const item = document.createElement('div');
+    item.className = 'announcement-item';
+    item.innerHTML = `<i class="fas ${offer.icon}"></i> ${offer.text}`;
+    content.appendChild(item);
+  });
+  bar.appendChild(content);
+  document.body.prepend(bar);
+  document.body.classList.add('has-announcement');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  initAnnouncementBar();
   loadDynamicSettings();
   populateCategoriesDropdown();
 });

@@ -328,20 +328,26 @@
       grid.innerHTML = `<p style="color:var(--text-muted);text-align:center;grid-column:1/-1;padding:40px">Products coming soon. <a href="/quote.html" style="color:var(--primary-light)">Request a quote</a></p>`;
       return;
     }
-    grid.innerHTML = data.data.map(p => `
+    grid.innerHTML = data.data.map(p => {
+      const inclusivePrice = Number(p.base_price) * (1 + (parseFloat(p.gst_percent) || 18) / 100);
+      return `
       <div class="card animate-fadeUp" onclick="window.location.href='/product-detail.html?slug=${p.slug}'">
         <div class="card-img-wrap" style="position:relative;overflow:hidden"><img src="${p.image_url||'/images/hero_banner.png'}" alt="${p.name}" class="card-img" loading="lazy"></div>
         <div class="card-body">
           <div class="card-category">${p.category_name}</div>
           <h3 class="card-title">${p.name}</h3>
           <p class="card-desc">${p.short_description||''}</p>
-          <div class="card-price">₹${Number(p.base_price).toLocaleString('en-IN')}<span style="font-size:13px;color:var(--text-muted)">/unit</span></div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div class="card-price">₹${inclusivePrice.toLocaleString('en-IN', {maximumFractionDigits:2})}<span style="font-size:13px;color:var(--text-muted)">/unit</span></div>
+            <div style="font-size:10px;color:var(--accent);font-weight:600;">Inclusive of all taxes</div>
+          </div>
         </div>
         <div class="card-footer">
           <div class="rating"><i class="fas fa-star"></i> ${p.rating||'4.8'}</div>
           <button class="btn btn-primary btn-sm">View Details</button>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   } catch(e) {
     grid.innerHTML = `<p style="color:var(--text-muted);text-align:center;grid-column:1/-1;padding:40px">Could not load products. <a href="/products.html" style="color:var(--primary-light)">Browse all products</a></p>`;
   }

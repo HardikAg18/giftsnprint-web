@@ -16,6 +16,22 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
     });
 }
 
+async function decrementStock(items) {
+    try {
+        for (const item of items) {
+            if (!item.id) continue;
+            const [products] = await db.execute('SELECT stock FROM products WHERE id = ?', [item.id]);
+            if (products.length > 0 && products[0].stock !== null && products[0].stock !== undefined) {
+                const newStock = Math.max(0, parseInt(products[0].stock) - parseInt(item.qty || 1));
+                await db.execute('UPDATE products SET stock = ? WHERE id = ?', [newStock, item.id]);
+                console.log(`Decremented stock for product ID ${item.id} to ${newStock}`);
+            }
+        }
+    } catch (e) {
+        console.error('Failed to decrement stock:', e);
+    }
+}
+
 // POST /api/payment/create-order
 router.post('/create-order', async (req, res) => {
     try {
@@ -53,7 +69,7 @@ router.post('/create-order', async (req, res) => {
                     : coupon.discount_value;
             }
         }
-        const shipping = subtotal >= 1000 ? 0 : 99;
+        const shipping = subtotal >= 999 ? 0 : 99;
         const codFee = req.body.payment_method === 'cod' ? 50 : 0;
         const total = subtotal + gst + shipping + codFee - discount;
         
@@ -69,6 +85,8 @@ router.post('/create-order', async (req, res) => {
                  shipping_address.address, shipping_address.city, shipping_address.state, pincode,
                  JSON.stringify(items), subtotal, gst, shipping, discount, total]
             );
+
+            await decrementStock(items);
 
             // Send Confirmation Email to Customer
             const emailHtml = `<h2>Order Confirmed!</h2><p>Your Cash on Delivery order <b>${orderId}</b> for ₹${total} has been confirmed. We will begin processing your order right away and send you tracking details as soon as it ships.</p>`;
@@ -153,17 +171,21 @@ router.post('/verify', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Payment verification failed.' });
         }
         
-        await db.execute(
-            'UPDATE orders SET payment_status = ?, razorpay_payment_id = ?, order_status = ? WHERE order_id = ?',
-            ['paid', razorpay_payment_id, 'confirmed', order_id]
-        );
-        
-        // Update coupon usage if used
-        
-        // Fetch AWB from Delhivery
         const [orders] = await db.execute('SELECT * FROM orders WHERE order_id = ?', [order_id]);
         if (orders.length > 0) {
             const ord = orders[0];
+            const alreadyPaid = ord.payment_status === 'paid';
+            
+            await db.execute(
+                'UPDATE orders SET payment_status = ?, razorpay_payment_id = ?, order_status = ? WHERE order_id = ?',
+                ['paid', razorpay_payment_id, 'confirmed', order_id]
+            );
+            
+            if (!alreadyPaid) {
+                const itemsList = typeof ord.items === 'string' ? JSON.parse(ord.items) : ord.items;
+                await decrementStock(itemsList);
+            }
+            
             // Send confirmation email
             const emailHtml = `<h2>Payment Successful!</h2><p>Your order <b>${order_id}</b> has been paid and confirmed. We will begin processing your order right away and send you tracking details as soon as it ships.</p>`;
             await sendEmail({ to: ord.customer_email, subject: `Order Payment Successful - ${order_id}`, html: emailHtml });

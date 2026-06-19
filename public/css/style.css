@@ -53,6 +53,57 @@ a{text-decoration:none;color:inherit}
 .btn-lg{padding:18px 40px;font-size:17px}
 .btn-sm{padding:8px 20px;font-size:13px}
 
+/* Announcement Bar Ticker */
+.announcement-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(90deg, #09090e 0%, #17153a 50%, #09090e 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+}
+.announcement-content {
+  display: flex;
+  white-space: nowrap;
+  animation: marquee-scroll 35s linear infinite;
+  align-items: center;
+}
+.announcement-content:hover {
+  animation-play-state: paused;
+}
+.announcement-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 40px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.announcement-item i {
+  color: #10B981;
+  font-size: 14px;
+}
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+body.has-announcement {
+  padding-top: 40px;
+}
+body.has-announcement .navbar {
+  top: 40px !important;
+}
+
 /* Navbar */
 .navbar{position:fixed;top:0;left:0;right:0;z-index:1000;padding:16px 0;transition:all .4s ease;background:rgba(6,6,20,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.05)}
 .navbar.scrolled{background:rgba(6,6,20,0.98);padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.1)}

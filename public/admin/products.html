@@ -67,6 +67,7 @@
           </select>
         </div>
         <div class="form-group"><label class="form-label">Min Order Qty</label><input type="number" name="min_order_qty" class="form-control" value="25" min="1"></div>
+        <div class="form-group"><label class="form-label">Stock Available (Optional)</label><input type="number" name="stock" class="form-control" placeholder="Unlimited" min="0"></div>
       </div>
       <div class="form-group"><label class="form-label">Product Image URL</label>
         <div style="display:flex;gap:8px">
@@ -112,6 +113,7 @@
       <div class="form-row" style="margin-top:16px;gap:24px;justify-content:flex-start">
         <div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" name="is_featured" value="1"> <span style="font-size:14px">Mark as Featured</span></label></div>
         <div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" name="is_active" value="1" checked> <span style="font-size:14px">Active Product</span></label></div>
+        <div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" name="no_return" value="1"> <span style="font-size:14px;color:#EF4444;font-weight:600;"><i class="fas fa-exclamation-circle"></i> Non-Returnable</span></label></div>
       </div>
     </div><div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('addProductModal')">Cancel</button><button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Add Product</button></div></form>
   </div>
@@ -310,6 +312,15 @@ document.addEventListener('DOMContentLoaded', () => {
   loadActiveOffers();
   let t;
   document.getElementById('productSearch')?.addEventListener('input', e => { clearTimeout(t); t = setTimeout(() => loadAdminProducts({ search: e.target.value }), 400); });
+  document.getElementById('productCategorySelect')?.addEventListener('change', (e) => {
+    const option = e.target.options[e.target.selectedIndex];
+    const catName = option ? option.text.toLowerCase() : '';
+    if (catName.includes('custom') || catName.includes('print') || catName.includes('trophy') || catName.includes('award') || catName.includes('gift')) {
+      document.querySelector('#addProductForm [name="no_return"]').checked = true;
+    } else {
+      document.querySelector('#addProductForm [name="no_return"]').checked = false;
+    }
+  });
 });
 
 document.getElementById('addProductForm')?.addEventListener('submit', async (e) => {
@@ -329,6 +340,8 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
     gst_percent: parseFloat(form.gst_percent.value),
     min_order_qty: parseInt(form.min_order_qty.value),
     unit_type: form.unit_type.value,
+    stock: form.stock.value ? parseInt(form.stock.value) : null,
+    no_return: form.no_return.checked ? 1 : 0,
     tags: form.tags.value,
     image_url: form.image_url.value,
     gallery_images: window.currentGallery,
@@ -408,6 +421,8 @@ window.editProduct = async function(p) {
   form.gst_percent.value = p.gst_percent || '18';
   form.min_order_qty.value = p.min_order_qty || 1;
   form.unit_type.value = p.unit_type;
+  form.stock.value = p.stock !== null && p.stock !== undefined ? p.stock : '';
+  form.no_return.checked = p.no_return === true || p.no_return === 1 || p.no_return === 'true';
   form.image_url.value = p.image_url || '';
   form.tags.value = p.tags || '';
   form.offer_id.value = p.offer_id || '';

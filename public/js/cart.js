@@ -20,13 +20,16 @@ function renderCart() {
   emptyEl?.classList.add('hidden');
   summaryEl?.classList.remove('hidden');
 
-  container.innerHTML = cart.map((item, idx) => `
+  container.innerHTML = cart.map((item, idx) => {
+    const itemInclusivePrice = item.price * (1 + (parseFloat(item.gst_percent) || 18) / 100);
+    return `
     <div class="cart-item animate-fadeUp" data-idx="${idx}">
       <img src="${item.image || '/images/hero_banner.png'}" alt="${item.name}" class="cart-item-img" onerror="this.src='/images/hero_banner.png'">
       <div class="cart-item-info">
         <div class="cart-item-name">${item.name}</div>
+        ${item.no_return ? `<div style="font-size:11px;color:#EF4444;font-weight:600;margin-top:2px;margin-bottom:2px;"><i class="fas fa-exclamation-circle"></i> Non-Returnable</div>` : ''}
         ${item.customization ? `<div class="cart-item-custom">${item.customization}</div>` : ''}
-        <div class="cart-item-price">₹${(item.price * item.qty).toLocaleString('en-IN')}</div>
+        <div class="cart-item-price">₹${(itemInclusivePrice * item.qty).toLocaleString('en-IN')}</div>
         <div class="cart-qty">
           <button class="qty-btn" onclick="changeQty(${idx},-1)"><i class="fas fa-minus"></i></button>
           <span class="qty-display">${item.qty}</span>
@@ -34,14 +37,41 @@ function renderCart() {
         </div>
       </div>
       <button class="cart-remove" onclick="removeItem(${idx})" title="Remove"><i class="fas fa-trash-alt"></i></button>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 
   // Summary
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const gst = Math.round(cart.reduce((s, i) => s + (i.price * i.qty * (parseFloat(i.gst_percent) || 18) / 100), 0));
-  const shipping = subtotal >= 1000 ? 0 : 99;
+  const shipping = subtotal >= 999 ? 0 : 99;
   const total = subtotal + gst + shipping;
+
+  // Dynamic free shipping bar
+  let alertEl = document.getElementById('cartShippingAlert');
+  if (!alertEl && summaryEl) {
+    alertEl = document.createElement('div');
+    alertEl.id = 'cartShippingAlert';
+    summaryEl.insertBefore(alertEl, summaryEl.firstChild);
+  }
+  if (alertEl) {
+    if (subtotal >= 999) {
+      alertEl.style.cssText = 'background:#ecfdf5; border:1px solid #d1fae5; color:#047857; padding:12px; border-radius:12px; font-size:13.5px; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:8px;';
+      alertEl.innerHTML = `<i class="fas fa-truck-fast" style="color:#10b981;"></i> <span>🎉 <b>Yayy! You got free shipping!</b></span>`;
+    } else {
+      const remaining = 999 - subtotal;
+      const pct = Math.min(100, (subtotal / 999) * 100);
+      alertEl.style.cssText = 'background:#fffbeb; border:1px solid #fef3c7; color:#b45309; padding:12px; border-radius:12px; font-size:13.5px; font-weight:600; margin-bottom:16px; display:flex; flex-direction:column; gap:8px;';
+      alertEl.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px;">
+          <i class="fas fa-shipping-fast" style="color:#d97706;"></i>
+          <span>Add <b>₹${remaining.toLocaleString('en-IN')}</b> more to get free shipping!</span>
+        </div>
+        <div style="width:100%; height:6px; background:#e5e7eb; border-radius:3px; overflow:hidden;">
+          <div style="width:${pct}%; height:100%; background:#f59e0b; border-radius:3px; transition: width 0.4s ease;"></div>
+        </div>
+      `;
+    }
+  }
 
   document.getElementById('subtotalAmt').textContent = `₹${subtotal.toLocaleString('en-IN')}`;
   document.getElementById('gstAmt').textContent = `₹${gst.toLocaleString('en-IN')}`;

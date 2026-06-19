@@ -3,6 +3,7 @@ const API_BASE = '/api';
 
 /* ── Helper: Render Product Card ── */
 function renderProductCard(p) {
+  const inclusivePrice = Number(p.base_price) * (1 + (parseFloat(p.gst_percent) || 18) / 100);
   return `
     <div class="card animate-fadeUp" onclick="window.location.href='/product-detail.html?slug=${p.slug}'">
       <div class="card-img-wrap">
@@ -13,9 +14,12 @@ function renderProductCard(p) {
         <div class="card-category">${p.category_name}</div>
         <h3 class="card-title">${p.name}</h3>
         <p class="card-desc">${p.short_description || ''}</p>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
-          <div class="card-price">₹${Number(p.base_price).toLocaleString('en-IN')}<span class="card-price-unit">/${p.unit_type || 'pcs'}</span></div>
-          <div class="rating"><i class="fas fa-star"></i> ${p.rating || '4.8'}</div>
+        <div style="display:flex;flex-direction:column;gap:4px;margin-top:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+            <div class="card-price">₹${inclusivePrice.toLocaleString('en-IN', {maximumFractionDigits:2})}<span class="card-price-unit">/${p.unit_type || 'pcs'}</span></div>
+            <div class="rating"><i class="fas fa-star"></i> ${p.rating || '4.8'}</div>
+          </div>
+          <div style="font-size:10px;color:var(--accent);font-weight:600;">Inclusive of all taxes</div>
         </div>
       </div>
       <div class="card-footer">
@@ -173,7 +177,8 @@ async function loadProductDetail() {
     document.getElementById('productName').textContent = p.name;
     document.getElementById('productCategory').textContent = p.category_name;
     document.getElementById('productDesc').textContent = p.description || p.short_description || '';
-    document.getElementById('productPrice').textContent = `₹${Number(p.base_price).toLocaleString('en-IN')} / ${p.unit_type || 'pcs'}`;
+    const initialInclusivePrice = Number(p.base_price) * (1 + (parseFloat(p.gst_percent) || 18) / 100);
+    document.getElementById('productPrice').textContent = `₹${initialInclusivePrice.toLocaleString('en-IN', {maximumFractionDigits:2})} / ${p.unit_type || 'pcs'}`;
     // Render dynamic stars in container
     const ratingContainer = document.querySelector('.product-layout .rating');
     if (ratingContainer) {
@@ -278,23 +283,62 @@ async function loadProductDetail() {
         </div>`).join('');
     }
 
-    // Setup Quantity Stepper
+    // Setup Stock Status Warning and limits
     const qtyInput = document.getElementById('qtyInput');
     const minQ = p.min_order_qty || 1;
+    let isOutOfStock = false;
+
     if (qtyInput) {
+      const qtyContainer = qtyInput.closest('div');
+      if (qtyContainer) {
+        let stockEl = document.getElementById('stockStatusDisplay');
+        if (!stockEl) {
+          stockEl = document.createElement('div');
+          stockEl.id = 'stockStatusDisplay';
+          stockEl.style.cssText = 'margin-bottom:12px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px';
+          qtyContainer.parentElement.insertBefore(stockEl, qtyContainer);
+        }
+
+        if (p.stock !== null && p.stock !== undefined) {
+          const stockVal = parseInt(p.stock);
+          if (stockVal <= 0) {
+            isOutOfStock = true;
+            stockEl.innerHTML = `<span style="color:#ef4444"><i class="fas fa-times-circle"></i> Out of Stock</span>`;
+            qtyInput.disabled = true;
+          } else if (stockVal < 10) {
+            stockEl.innerHTML = `<span style="color:#f59e0b"><i class="fas fa-exclamation-triangle"></i> Only ${stockVal} left in stock - order soon!</span>`;
+            qtyInput.max = stockVal;
+          } else {
+            stockEl.innerHTML = `<span style="color:#10b981"><i class="fas fa-check-circle"></i> In Stock (${stockVal} available)</span>`;
+            qtyInput.max = stockVal;
+          }
+        } else {
+          stockEl.innerHTML = `<span style="color:#10b981"><i class="fas fa-check-circle"></i> In Stock</span>`;
+        }
+      }
+
       qtyInput.value = minQ;
       qtyInput.min = minQ;
+
       document.getElementById('qtyMinus')?.addEventListener('click', () => {
         let q = parseInt(qtyInput.value) || minQ;
         if (q > minQ) { qtyInput.value = q - 1; calculateTotal(); }
       });
       document.getElementById('qtyPlus')?.addEventListener('click', () => {
         let q = parseInt(qtyInput.value) || minQ;
+        if (p.stock !== null && p.stock !== undefined && q >= parseInt(p.stock)) {
+          showToast(`Only ${p.stock} units available in stock!`, 'error');
+          return;
+        }
         qtyInput.value = q + 1; calculateTotal();
       });
       qtyInput.addEventListener('change', () => {
         let q = parseInt(qtyInput.value);
         if(isNaN(q) || q < minQ) qtyInput.value = minQ;
+        if(p.stock !== null && p.stock !== undefined && q > parseInt(p.stock)) {
+          showToast(`Only ${p.stock} units available in stock!`, 'error');
+          qtyInput.value = p.stock;
+        }
         calculateTotal();
       });
     }
@@ -316,20 +360,42 @@ async function loadProductDetail() {
       dynContainer.innerHTML = optionsHtml;
     }
 
-    // Add to cart
+    // Disclaimers & Action States
     const atcBtn = document.getElementById('addToCartBtn');
+    const buyNowBtn = document.getElementById('buyNowBtn');
+    if (isOutOfStock) {
+      if (atcBtn) { atcBtn.disabled = true; atcBtn.style.opacity = '0.5'; atcBtn.style.pointerEvents = 'none'; atcBtn.textContent = 'Out of Stock'; }
+      if (buyNowBtn) { buyNowBtn.disabled = true; buyNowBtn.style.opacity = '0.5'; buyNowBtn.style.pointerEvents = 'none'; buyNowBtn.textContent = 'Out of Stock'; }
+    }
+
+    // Return Policy Disclaimer
+    if (p.no_return === true || p.no_return === 1 || p.no_return === 'true') {
+      const parentActions = document.querySelector('.product-actions')?.parentElement;
+      if (parentActions) {
+        let returnNotice = document.getElementById('returnNoticeDisplay');
+        if (!returnNotice) {
+          returnNotice = document.createElement('div');
+          returnNotice.id = 'returnNoticeDisplay';
+          returnNotice.style.cssText = 'margin-bottom:20px;padding:12px 16px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;font-size:13.5px;color:#dc2626;font-weight:600;display:flex;align-items:center;gap:8px';
+          returnNotice.innerHTML = `<i class="fas fa-exclamation-circle"></i> This item is non-returnable (Custom/Printed product)`;
+          const actionsContainer = document.querySelector('.product-actions');
+          parentActions.insertBefore(returnNotice, actionsContainer);
+        }
+      }
+    }
+
+    // Add to cart
     atcBtn?.addEventListener('click', () => {
       const qty = parseInt(qtyInput.value);
       const customization = document.getElementById('customizationNote')?.value || '';
-      addToCart({ id: p.id, name: p.name, price: window.currentCalculatedPrice || p.base_price, qty, image: p.image_url, slug: p.slug, customization, gst_percent: p.gst_percent });
+      addToCart({ id: p.id, name: p.name, price: window.currentCalculatedPrice || p.base_price, qty, image: p.image_url, slug: p.slug, customization, gst_percent: p.gst_percent, no_return: p.no_return });
     });
 
     // Buy Now
-    const buyNowBtn = document.getElementById('buyNowBtn');
     buyNowBtn?.addEventListener('click', () => {
       const qty = parseInt(qtyInput.value);
       const customization = document.getElementById('customizationNote')?.value || '';
-      addToCart({ id: p.id, name: p.name, price: window.currentCalculatedPrice || p.base_price, qty, image: p.image_url, slug: p.slug, customization, gst_percent: p.gst_percent }, true);
+      addToCart({ id: p.id, name: p.name, price: window.currentCalculatedPrice || p.base_price, qty, image: p.image_url, slug: p.slug, customization, gst_percent: p.gst_percent, no_return: p.no_return }, true);
       window.location.href = '/checkout.html';
     });
 
@@ -357,8 +423,13 @@ async function loadProductDetail() {
         if (applicableTier) baseUnitPrice = parseFloat(applicableTier.price_per_unit);
       }
       
+      const taxMultiplier = 1 + (parseFloat(p.gst_percent) || 18) / 100;
+
       const unitDisplay = document.getElementById('unitPriceDisplay');
-      if (unitDisplay) unitDisplay.textContent = `(₹${baseUnitPrice.toFixed(2)} / ${p.unit_type || 'unit'})`;
+      if (unitDisplay) {
+        const inclusiveBaseUnitPrice = baseUnitPrice * taxMultiplier;
+        unitDisplay.textContent = `(₹${inclusiveBaseUnitPrice.toFixed(2)} / ${p.unit_type || 'unit'})`;
+      }
       
       let modifiers = 0;
       let isCustomSize = false;
@@ -387,7 +458,8 @@ async function loadProductDetail() {
       const finalUnitPrice = (baseUnitPrice + modifiers) * areaMultiplier;
       window.currentCalculatedPrice = finalUnitPrice;
       
-      document.getElementById('productPrice').textContent = `₹${finalUnitPrice.toLocaleString('en-IN', {maximumFractionDigits:2})}`;
+      const finalInclusiveUnitPrice = finalUnitPrice * taxMultiplier;
+      document.getElementById('productPrice').textContent = `₹${finalInclusiveUnitPrice.toLocaleString('en-IN', {maximumFractionDigits:2})}`;
       
       const mrpEl = document.getElementById('productMrp');
       const savEl = document.getElementById('productSavings');
@@ -396,12 +468,13 @@ async function loadProductDetail() {
       const mrpVal = parseFloat(p.mrp);
       if (mrpVal && mrpVal > p.base_price) {
         const mrpAdjusted = (mrpVal + modifiers) * areaMultiplier;
-        const discountAmt = mrpAdjusted - finalUnitPrice;
-        const discountPct = Math.round((discountAmt / mrpAdjusted) * 100);
+        const mrpAdjustedInclusive = mrpAdjusted * taxMultiplier;
+        const discountAmt = mrpAdjustedInclusive - finalInclusiveUnitPrice;
+        const discountPct = Math.round((discountAmt / mrpAdjustedInclusive) * 100);
         
         if (mrpEl) {
           mrpEl.style.display = 'block';
-          mrpEl.textContent = `M.R.P: ₹${mrpAdjusted.toLocaleString('en-IN', {maximumFractionDigits:2})}`;
+          mrpEl.textContent = `M.R.P: ₹${mrpAdjustedInclusive.toLocaleString('en-IN', {maximumFractionDigits:2})}`;
         }
         if (savEl) {
           savEl.style.display = 'block';
@@ -417,8 +490,8 @@ async function loadProductDetail() {
         if (badgeEl) badgeEl.style.display = 'none';
       }
       
-      const total = (finalUnitPrice * qty).toLocaleString('en-IN', { maximumFractionDigits: 2 });
-      document.getElementById('totalPriceDisplay').textContent = `Total: ₹${total}`;
+      const totalInclusive = (finalInclusiveUnitPrice * qty).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+      document.getElementById('totalPriceDisplay').textContent = `Total: ₹${totalInclusive}`;
     }
     
     qtyInput?.addEventListener('input', calculateTotal);
