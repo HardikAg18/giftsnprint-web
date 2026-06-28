@@ -258,7 +258,9 @@ async function loadProductDetail() {
     if (bc) bc.innerHTML = `<a href="/">Home</a> <i class="fas fa-chevron-right"></i> <a href="/products.html?category=${p.category_slug}">${p.category_name}</a> <i class="fas fa-chevron-right"></i> <span>${p.name}</span>`;
 
     // Pricing tiers
+    const pricingSection = document.getElementById('pricingTableSection');
     if (p.pricing_tiers?.length) {
+      if (pricingSection) pricingSection.style.display = 'block';
       const tbody = document.getElementById('pricingTbody');
       if (tbody) {
         tbody.innerHTML = p.pricing_tiers.map(t => `
@@ -268,6 +270,8 @@ async function loadProductDetail() {
             <td>Save ${Math.round((1 - t.price_per_unit / p.base_price) * 100)}%</td>
           </tr>`).join('');
       }
+    } else {
+      if (pricingSection) pricingSection.style.display = 'none';
     }
 
     // Related products

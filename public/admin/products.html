@@ -372,7 +372,7 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
       label: row.querySelector('[name="tier_label"]').value
     });
   });
-  if (tiers.length > 0) data.pricing_tiers = JSON.stringify(tiers);
+  data.pricing_tiers = JSON.stringify(tiers);
 
   // Collect Custom Options
   const options = [];
@@ -388,7 +388,7 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
     });
     options.push({ name: optName, choices });
   });
-  if (options.length > 0) data.custom_options = JSON.stringify(options);
+  data.custom_options = JSON.stringify(options);
 
   try {
     const method = editId ? 'PUT' : 'POST';
