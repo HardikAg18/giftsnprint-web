@@ -69,6 +69,15 @@ router.post('/create-order', async (req, res) => {
             );
             if (coupons.length > 0) {
                 const coupon = coupons[0];
+                if (coupon.first_order_only) {
+                    const [orders] = await db.execute(
+                        "SELECT id FROM orders WHERE customer_email = ? AND (payment_method != 'razorpay' OR payment_status = 'paid')",
+                        [customer.email]
+                    );
+                    if (orders.length > 0) {
+                        return res.status(400).json({ success: false, message: 'This coupon is only valid for first-time customers.' });
+                    }
+                }
                 discount = coupon.discount_type === 'percentage'
                     ? Math.min((subtotal * coupon.discount_value) / 100, coupon.max_discount || Infinity)
                     : coupon.discount_value;

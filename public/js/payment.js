@@ -149,8 +149,8 @@ window.updateCheckoutCart = function(index, delta) {
       
       try {
         applyPromoBtn.disabled = true;
-        applyPromoBtn.textContent = '...';
-        const res = await fetch(`/api/coupons/validate/${code}`);
+        const email = document.getElementById('checkoutEmail')?.value || '';
+        const res = await fetch(`/api/coupons/validate/${code}?email=${encodeURIComponent(email)}`);
         const data = await res.json();
         
         if (data.success) {

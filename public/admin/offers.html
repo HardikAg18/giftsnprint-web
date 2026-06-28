@@ -59,7 +59,10 @@
           </div>
           <div class="form-group"><label class="form-label">Discount Value *</label><input type="number" name="discount_value" class="form-control" required min="0" step="0.01"></div>
         </div>
-        <div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" name="is_active" checked> Active Offer</label></div>
+        <div style="display:flex;gap:20px;margin-bottom:16px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" name="is_active" checked> Active Offer</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" name="first_order_only"> First Order Only</label>
+        </div>
         <button type="submit" class="btn btn-primary" style="width:100%"><i class="fas fa-save"></i> Save Offer</button>
       </form>
     </div>
@@ -76,7 +79,7 @@ async function loadOffers() {
   const tbody = document.getElementById('offersTbody');
   tbody.innerHTML = currentOffers.length ? currentOffers.map(o => `
     <tr>
-      <td><strong>${o.code}</strong></td>
+      <td><strong>${o.code}</strong>${o.first_order_only ? '<span style="font-size:11px;background:#ffeaa7;color:#d63031;padding:2px 6px;border-radius:4px;margin-left:6px;font-weight:600">1st Order Only</span>' : ''}</td>
       <td>${o.description || '-'}</td>
       <td>${o.discount_type === 'percentage' ? o.discount_value + '%' : '₹' + o.discount_value} OFF</td>
       <td>${o.is_active ? '<span class="status-badge status-completed">Active</span>' : '<span class="status-badge status-cancelled">Inactive</span>'}</td>
@@ -105,6 +108,7 @@ function editOffer(o) {
   form.discount_type.value = o.discount_type;
   form.discount_value.value = o.discount_value;
   form.is_active.checked = o.is_active;
+  form.first_order_only.checked = o.first_order_only === true || o.first_order_only === 1 || o.first_order_only === 'true';
   document.querySelector('#offerModal h3').textContent = 'Edit Offer';
   openModal('offerModal');
 }
@@ -118,7 +122,8 @@ document.getElementById('offerForm').addEventListener('submit', async (e) => {
     description: form.description.value,
     discount_type: form.discount_type.value,
     discount_value: parseFloat(form.discount_value.value),
-    is_active: form.is_active.checked
+    is_active: form.is_active.checked,
+    first_order_only: form.first_order_only.checked
   };
   
   const method = editId ? 'PUT' : 'POST';
