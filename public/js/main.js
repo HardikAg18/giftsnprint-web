@@ -199,3 +199,40 @@ toastStyle.textContent = `
 .animate-fadeUp.visible{opacity:1;transform:translateY(0)}
 `;
 document.head.appendChild(toastStyle);
+
+/* ── Form Auto-Save Cache Helper ── */
+window.setupFormCache = function(formId, fieldIds) {
+  const form = document.getElementById(formId);
+  if (!form) return () => {};
+  
+  // Load cached values
+  fieldIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      const savedVal = localStorage.getItem(`cache_${formId}_${id}`);
+      if (savedVal !== null && savedVal !== undefined) {
+        if (el.type === 'checkbox') {
+          el.checked = savedVal === 'true';
+        } else {
+          el.value = savedVal;
+        }
+      }
+      
+      // Listen to changes
+      const saveValue = () => {
+        const val = el.type === 'checkbox' ? el.checked : el.value;
+        localStorage.setItem(`cache_${formId}_${id}`, val);
+      };
+      
+      el.addEventListener('input', saveValue);
+      el.addEventListener('change', saveValue);
+    }
+  });
+  
+  // Return clear function
+  return () => {
+    fieldIds.forEach(id => {
+      localStorage.removeItem(`cache_${formId}_${id}`);
+    });
+  };
+};

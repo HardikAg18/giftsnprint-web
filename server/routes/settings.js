@@ -25,7 +25,8 @@ router.put('/', auth, async (req, res) => {
         for (const [key, value] of Object.entries(settings)) {
             await db.execute(
                 `INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) 
-                 ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = CURRENT_TIMESTAMP`,
+                 ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = CURRENT_TIMESTAMP
+                 RETURNING setting_key`,
                 [key, value]
             );
         }

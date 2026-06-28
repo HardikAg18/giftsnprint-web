@@ -87,6 +87,12 @@ const params = new URLSearchParams(location.search);
 if (params.get('product')) document.getElementById('quoteProduct').value = params.get('product');
 if (params.get('qty')) document.getElementById('quoteQty').value = params.get('qty');
 
+// Initialize form caching
+const clearQuoteCache = window.setupFormCache('quoteForm', [
+  'quoteName', 'quotePhone', 'quoteEmail', 'quoteCompany', 'quoteCategory', 
+  'quoteProduct', 'quoteQty', 'quoteBudget', 'quoteMessage', 'quoteDeadline'
+]);
+
 document.getElementById('quoteForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('quoteBtn');
@@ -103,7 +109,11 @@ document.getElementById('quoteForm')?.addEventListener('submit', async (e) => {
     };
     const res = await fetch('/api/contact', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
     const data = await res.json();
-    if (data.success) { alert.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> Quote request submitted! We\'ll send you pricing within 2 hours.</div>'; e.target.reset(); }
+    if (data.success) { 
+      alert.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> Quote request submitted! We\'ll send you pricing within 2 hours.</div>'; 
+      e.target.reset(); 
+      clearQuoteCache();
+    }
     else { alert.innerHTML = '<div class="alert alert-error">' + (data.message || 'Failed to submit. Please try WhatsApp.') + '</div>'; }
   } catch(err) { alert.innerHTML = '<div class="alert alert-error">Connection error. Please try WhatsApp instead.</div>'; }
   btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Quote Request';

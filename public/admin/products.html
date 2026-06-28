@@ -186,6 +186,12 @@ async function uploadToGallery(input) {
         headers: { 'Authorization': 'Bearer ' + localStorage.getItem('gnp_admin_token') },
         body: formData
       });
+      if (res.status === 401) {
+        alert('Your session has expired. Please log in again.');
+        localStorage.removeItem('gnp_admin_token');
+        window.location.href = '/admin/login.html';
+        return;
+      }
       const data = await res.json();
       if (data.success) {
         window.currentGallery.push({ url: data.url, resource_type: data.resource_type || 'image', name: file.name });
@@ -218,6 +224,12 @@ async function uploadToCloudinary(input) {
       headers: { 'Authorization': 'Bearer ' + localStorage.getItem('gnp_admin_token') },
       body: formData
     });
+    if (res.status === 401) {
+      alert('Your session has expired. Please log in again.');
+      localStorage.removeItem('gnp_admin_token');
+      window.location.href = '/admin/login.html';
+      return;
+    }
     const data = await res.json();
     if (data.success) {
       status.textContent = 'Upload successful!';

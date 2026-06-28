@@ -33,6 +33,16 @@
                 <option value="cod">Cash on Delivery (COD)</option>
               </select>
             </div>
+            <div class="form-group" style="margin-top:16px;">
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:600;font-size:14px;">
+                <input type="checkbox" id="needGSTBill" name="need_gst_bill" checked style="width:18px;height:18px;">
+                <span>Need GST invoice / GST bill (tax will be added)</span>
+              </label>
+            </div>
+            <div class="form-group" id="gstinGroup" style="margin-top:10px;">
+              <label class="form-label">GSTIN (Optional)</label>
+              <input type="text" name="gstin" id="checkoutGSTIN" class="form-control" placeholder="Enter Company GSTIN number">
+            </div>
             <input type="hidden" id="hiddenTotal" value="0">
             <button type="submit" id="payBtn" class="btn btn-primary btn-lg" style="width:100%;margin-top:8px"><i class="fas fa-lock"></i> Pay Securely with Razorpay</button>
           </form>

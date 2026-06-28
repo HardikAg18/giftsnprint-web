@@ -33,6 +33,10 @@
       <div class="form-group"><label class="form-label">Email</label><input class="form-control" id="setEmail" value="info.giftsnprint@gmail.com"></div>
       <div class="form-group"><label class="form-label">WhatsApp Number</label><input class="form-control" id="setWhatsapp" value="918769558589"></div>
       <div class="form-group"><label class="form-label">Address</label><textarea class="form-control" id="setAddress" rows="3">123 Print Lane, Andheri West, Mumbai - 400053</textarea></div>
+      
+      <h3 style="font-weight:700;margin-top:24px;margin-bottom:20px;font-size:16px;padding-top:16px;border-top:1px solid var(--border)"><i class="fas fa-plug" style="color:var(--accent);margin-right:8px"></i> Integrations</h3>
+      <div class="form-group"><label class="form-label">Google Maps API Key</label><input type="password" class="form-control" id="setGoogleMapsKey" placeholder="AIzaSy..."></div>
+      
       <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Save Changes</button>
     </div>
     <div>
@@ -71,6 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('setEmail').value = res.data.email || '';
         document.getElementById('setWhatsapp').value = res.data.whatsapp || '';
         document.getElementById('setAddress').value = res.data.address || '';
+        document.getElementById('setGoogleMapsKey').value = res.data.google_maps_api_key || '';
     }
 });
 
@@ -80,7 +85,8 @@ async function saveSettings() {
         phone: document.getElementById('setPhone').value,
         email: document.getElementById('setEmail').value,
         whatsapp: document.getElementById('setWhatsapp').value,
-        address: document.getElementById('setAddress').value
+        address: document.getElementById('setAddress').value,
+        google_maps_api_key: document.getElementById('setGoogleMapsKey').value
     };
     
     const res = await apiRequest('/settings', { method: 'PUT', body: JSON.stringify(data) });

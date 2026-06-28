@@ -35,7 +35,7 @@ async function decrementStock(items) {
 // POST /api/payment/create-order
 router.post('/create-order', async (req, res) => {
     try {
-        const { items, customer, shipping_address, coupon_code } = req.body;
+        const { items, customer, shipping_address, coupon_code, need_gst_bill } = req.body;
         
         // Extract pincode from address text if the frontend passed a default/invalid one
         let pincode = shipping_address.pincode || '000000';
@@ -55,6 +55,11 @@ router.post('/create-order', async (req, res) => {
             gst += itemTotal * (parseFloat(item.gst_percent) || 18) / 100;
         }
         gst = Math.round(gst);
+
+        // Apply optional GST invoice toggle
+        if (need_gst_bill === false) {
+            gst = 0;
+        }
         
         let discount = 0;
         if (coupon_code) {

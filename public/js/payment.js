@@ -19,6 +19,15 @@ async function initCheckout() {
   let appliedDiscount = 0;
   let currentPromoCode = '';
 
+  // Initialize form caching
+  const clearCheckoutCache = window.setupFormCache('checkoutForm', [
+    'checkoutName', 'checkoutPhone', 'checkoutEmail', 'checkoutAddress', 'checkoutNotes',
+    'paymentMethod', 'needGSTBill', 'checkoutGSTIN'
+  ]);
+  
+  // Load Google Maps script
+  loadGoogleMapsScript(initAutocomplete);
+
 window.updateCheckoutCart = function(index, delta) {
     const newQty = cart[index].qty + delta;
     if (newQty <= 0) {
@@ -42,7 +51,8 @@ window.updateCheckoutCart = function(index, delta) {
     const paymentMethod = document.getElementById('paymentMethod')?.value || 'razorpay';
     const codFee = paymentMethod === 'cod' ? 50 : 0;
     const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
-    const gst = Math.round(cart.reduce((s, i) => s + (i.price * i.qty * (parseFloat(i.gst_percent) || 18) / 100), 0));
+    const needGST = document.getElementById('needGSTBill')?.checked !== false;
+    const gst = needGST ? Math.round(cart.reduce((s, i) => s + (i.price * i.qty * (parseFloat(i.gst_percent) || 18) / 100), 0)) : 0;
     const shipping = subtotal >= 999 ? 0 : 99;
     let total = subtotal + gst + shipping + codFee - appliedDiscount;
     if (total < 0) total = 0;
@@ -116,6 +126,20 @@ window.updateCheckoutCart = function(index, delta) {
     });
   }
 
+  const needGSTCheckbox = document.getElementById('needGSTBill');
+  const gstinGroup = document.getElementById('gstinGroup');
+  if (needGSTCheckbox) {
+    if (gstinGroup) {
+      gstinGroup.style.display = needGSTCheckbox.checked ? 'block' : 'none';
+    }
+    needGSTCheckbox.addEventListener('change', () => {
+      if (gstinGroup) {
+        gstinGroup.style.display = needGSTCheckbox.checked ? 'block' : 'none';
+      }
+      renderSummary();
+    });
+  }
+
   const applyPromoBtn = document.getElementById('applyPromoBtn');
   if (applyPromoBtn) {
     applyPromoBtn.addEventListener('click', async () => {
@@ -176,18 +200,38 @@ window.updateCheckoutCart = function(index, delta) {
     const cart = getCart();
     const total = parseInt(document.getElementById('hiddenTotal').value);
 
+    let shippingDetails = window.parsedShippingDetails;
+    if (!shippingDetails || shippingDetails.address !== document.getElementById('checkoutAddress').value) {
+      const rawAddress = document.getElementById('checkoutAddress').value;
+      let parsedPin = '000000';
+      const match = rawAddress.match(/\b\d{6}\b/);
+      if (match) parsedPin = match[0];
+      
+      shippingDetails = {
+        address: rawAddress,
+        city: 'Local',
+        state: 'Local',
+        pincode: parsedPin
+      };
+    }
+
+    const needGST = document.getElementById('needGSTBill')?.checked !== false;
+    const gstin = document.getElementById('checkoutGSTIN')?.value || '';
+    const companyVal = needGST && gstin ? `GSTIN: ${gstin}` : '';
+
     try {
       // Create order on backend
       const res = await fetch(`${API_BASE}/payment/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-        customer: { name: document.getElementById('checkoutName').value, email: document.getElementById('checkoutEmail').value, phone: document.getElementById('checkoutPhone').value },
-        shipping_address: { address: document.getElementById('checkoutAddress').value, city: 'Local', state: 'Local', pincode: '000000' },
+        customer: { name: document.getElementById('checkoutName').value, email: document.getElementById('checkoutEmail').value, phone: document.getElementById('checkoutPhone').value, company: companyVal },
+        shipping_address: shippingDetails,
         items: cart,
         discount: appliedDiscount,
         coupon_code: currentPromoCode,
-        payment_method: document.getElementById('paymentMethod').value
+        payment_method: document.getElementById('paymentMethod').value,
+        need_gst_bill: needGST
       })
       });
 
@@ -200,6 +244,7 @@ window.updateCheckoutCart = function(index, delta) {
 
       if (resData.payment_method === 'cod') {
         localStorage.removeItem('gnp_cart');
+        clearCheckoutCache();
         window.location.href = `/order-success.html?order=${resData.order_id}`;
         return;
       }
@@ -231,6 +276,7 @@ window.updateCheckoutCart = function(index, delta) {
             const verifyData = await verifyRes.json();
             if (verifyData.success) {
               localStorage.removeItem(CART_KEY);
+              clearCheckoutCache();
               window.location.href = `/order-success.html?order=${resData.order_id}`;
             } else {
               showToast('Payment verification failed. Contact support.', 'error');
@@ -298,6 +344,85 @@ ps.textContent = `
 .summary-divider{border-top:1px dashed var(--border);margin:8px 0}
 `;
 document.head.appendChild(ps);
+
+// Google Maps API integration
+function loadGoogleMapsScript(callback) {
+  const interval = setInterval(() => {
+    if (window.SETTINGS && Object.keys(window.SETTINGS).length > 0) {
+      clearInterval(interval);
+      const key = window.SETTINGS.google_maps_api_key;
+      if (!key) {
+        console.warn('Google Maps API key is not configured in settings.');
+        return;
+      }
+      
+      if (document.getElementById('google-maps-script')) {
+        if (callback) callback();
+        return;
+      }
+      
+      const script = document.createElement('script');
+      script.id = 'google-maps-script';
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        if (callback) callback();
+      };
+      document.head.appendChild(script);
+    }
+  }, 100);
+}
+
+function initAutocomplete() {
+  const addressInput = document.getElementById('checkoutAddress');
+  if (!addressInput) return;
+  
+  const options = {
+    componentRestrictions: { country: 'in' },
+    fields: ['address_components', 'formatted_address', 'geometry']
+  };
+  
+  const autocomplete = new google.maps.places.Autocomplete(addressInput, options);
+  
+  autocomplete.addListener('place_changed', () => {
+    const place = autocomplete.getPlace();
+    if (!place.address_components) return;
+    
+    let pincode = '';
+    let city = '';
+    let state = '';
+    
+    place.address_components.forEach(c => {
+      const types = c.types;
+      if (types.includes('postal_code')) {
+        pincode = c.long_name;
+      } else if (types.includes('locality')) {
+        city = c.long_name;
+      } else if (types.includes('administrative_area_level_1')) {
+        state = c.long_name;
+      } else if (types.includes('administrative_area_level_2') && !city) {
+        city = c.long_name;
+      }
+    });
+    
+    window.parsedShippingDetails = {
+      address: place.formatted_address || addressInput.value,
+      city: city || 'Local',
+      state: state || 'Local',
+      pincode: pincode || '000000'
+    };
+    
+    addressInput.value = place.formatted_address;
+    localStorage.setItem('cache_checkoutForm_checkoutAddress', place.formatted_address);
+    
+    if (pincode) {
+      showToast(`Location verified! Pincode: ${pincode}`, 'success');
+    } else {
+      showToast(`Location selected, but pincode not found. Please type it in address.`, 'error');
+    }
+  });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   initCheckout();
