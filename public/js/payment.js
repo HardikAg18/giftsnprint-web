@@ -82,12 +82,12 @@ window.updateCheckoutCart = function(index, delta) {
     summaryEl.innerHTML = `
       ${alertHtml}
       ${cart.map((i, index) => {
-        const itemInclusivePrice = i.price * (1 + (parseFloat(i.gst_percent) || 18) / 100);
+        const itemDisplayPrice = needGST ? i.price * (1 + (parseFloat(i.gst_percent) || 18) / 100) : i.price;
         return `
         <div class="summary-item" style="display:flex; flex-direction:column; gap:6px;">
           <div style="display:flex; justify-content:space-between; width:100%;">
             <span>${i.name}</span>
-            <span>₹${(itemInclusivePrice * i.qty).toLocaleString('en-IN')}</span>
+            <span>₹${(itemDisplayPrice * i.qty).toLocaleString('en-IN')}</span>
           </div>
           <div style="display:flex; align-items:center; gap:10px; font-size:14px; margin-top:2px;">
             <button onclick="updateCheckoutCart(${index}, -1)" style="border:1px solid var(--border); background:var(--surface); padding:2px 8px; border-radius:4px; cursor:pointer;">-</button>
@@ -129,10 +129,15 @@ window.updateCheckoutCart = function(index, delta) {
   const needGSTCheckbox = document.getElementById('needGSTBill');
   const gstinGroup = document.getElementById('gstinGroup');
   if (needGSTCheckbox) {
+    const storedGSTPref = localStorage.getItem('need_gst_bill');
+    if (storedGSTPref !== null) {
+      needGSTCheckbox.checked = storedGSTPref === 'true';
+    }
     if (gstinGroup) {
       gstinGroup.style.display = needGSTCheckbox.checked ? 'block' : 'none';
     }
     needGSTCheckbox.addEventListener('change', () => {
+      localStorage.setItem('need_gst_bill', needGSTCheckbox.checked ? 'true' : 'false');
       if (gstinGroup) {
         gstinGroup.style.display = needGSTCheckbox.checked ? 'block' : 'none';
       }

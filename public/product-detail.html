@@ -52,7 +52,22 @@
           <div id="productMrp" style="font-size:18px;color:var(--text-muted);text-decoration:line-through;display:none;"></div>
           <div id="productSavings" style="font-size:16px;color:var(--danger, #ef4444);font-weight:700;display:none;"></div>
         </div>
-        <div style="font-size:12px;color:var(--accent);font-weight:600;margin-top:2px;margin-bottom:12px;" id="inclusiveTaxesLine">Inclusive of all taxes</div>
+        <div style="font-size:12px;color:var(--accent);font-weight:600;margin-top:2px;margin-bottom:4px;" id="inclusiveTaxesLine">Inclusive of all taxes</div>
+        
+        <div id="productPriceWithoutGstContainer" style="display:flex;align-items:baseline;gap:8px;margin-top:4px;margin-bottom:4px;">
+          <span style="font-size:18px;font-weight:700;color:var(--text);" id="productPriceWithoutGst">₹0</span>
+          <span style="font-size:13px;color:var(--text-muted);font-weight:500;">(without GST)</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);font-weight:600;margin-top:2px;margin-bottom:16px;" id="exclusiveTaxesLine">Exclusive of all taxes</div>
+
+        <!-- GST bill toggle (similar to checkout page) -->
+        <div style="margin-top:16px;margin-bottom:20px;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:fit-content;display:flex;align-items:center;">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:600;font-size:14px;margin:0;color:var(--text);">
+            <input type="checkbox" id="detailNeedGSTBill" checked style="width:18px;height:18px;">
+            <span>Need GST invoice / GST bill (tax will be added)</span>
+          </label>
+        </div>
+
         <div id="productSavingsBadge" style="display:none;background-color:#7ed6df;color:#000;padding:4px 8px;border-radius:4px;font-size:13px;font-weight:600;margin-top:8px;width:fit-content;"></div>
         <div style="font-size:13px;color:var(--text-muted);margin-top:4px" id="minQtyHint">Minimum order: 25 units</div>
         <p id="productDesc" style="color:var(--text-muted);margin:20px 0;line-height:1.9;font-size:15px"></p>

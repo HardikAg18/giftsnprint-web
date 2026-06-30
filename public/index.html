@@ -339,7 +339,9 @@
           <p class="card-desc">${p.short_description||''}</p>
           <div style="display:flex;flex-direction:column;gap:4px">
             <div class="card-price">₹${inclusivePrice.toLocaleString('en-IN', {maximumFractionDigits:2})}<span style="font-size:13px;color:var(--text-muted)">/unit</span></div>
-            <div style="font-size:10px;color:var(--accent);font-weight:600;">Inclusive of all taxes</div>
+            <div style="font-size:10px;color:var(--accent);font-weight:600;margin-bottom:2px">Inclusive of all taxes</div>
+            <div style="font-size:12px;color:var(--text);font-weight:600;margin-top:2px">₹${Number(p.base_price).toLocaleString('en-IN', {maximumFractionDigits:2})}<span style="font-size:10px;color:var(--text-muted)">/unit (without GST)</span></div>
+            <div style="font-size:10px;color:var(--text-muted);font-weight:600;">Exclusive of all taxes</div>
           </div>
         </div>
         <div class="card-footer">

@@ -19,7 +19,9 @@ function renderProductCard(p) {
             <div class="card-price">₹${inclusivePrice.toLocaleString('en-IN', {maximumFractionDigits:2})}<span class="card-price-unit">/${p.unit_type || 'pcs'}</span></div>
             <div class="rating"><i class="fas fa-star"></i> ${p.rating || '4.8'}</div>
           </div>
-          <div style="font-size:10px;color:var(--accent);font-weight:600;">Inclusive of all taxes</div>
+          <div style="font-size:10px;color:var(--accent);font-weight:600;margin-bottom:2px">Inclusive of all taxes</div>
+          <div style="font-size:12px;color:var(--text);font-weight:600;margin-top:2px">₹${Number(p.base_price).toLocaleString('en-IN', {maximumFractionDigits:2})}<span style="font-size:10px;color:var(--text-muted)">/${p.unit_type || 'pcs'} (without GST)</span></div>
+          <div style="font-size:10px;color:var(--text-muted);font-weight:600;">Exclusive of all taxes</div>
         </div>
       </div>
       <div class="card-footer">
@@ -277,14 +279,22 @@ async function loadProductDetail() {
     // Related products
     if (p.related_products?.length) {
       const rel = document.getElementById('relatedGrid');
-      if (rel) rel.innerHTML = p.related_products.map(r => `
+      if (rel) rel.innerHTML = p.related_products.map(r => {
+        const inclusivePrice = Number(r.base_price) * (1 + (parseFloat(r.gst_percent) || 18) / 100);
+        return `
         <div class="card" onclick="window.location.href='/product-detail.html?slug=${r.slug}'">
           <img src="${r.image_url || '/images/hero_banner.png'}" class="card-img" loading="lazy">
           <div class="card-body">
             <h4 class="card-title">${r.name}</h4>
-            <div class="card-price">₹${Number(r.base_price).toLocaleString('en-IN')}/unit</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div class="card-price" style="font-size:14px">₹${inclusivePrice.toLocaleString('en-IN', {maximumFractionDigits:2})}<span style="font-size:11px;color:var(--text-muted)">/unit</span></div>
+              <div style="font-size:9px;color:var(--accent);font-weight:600;margin-bottom:2px">Inclusive of all taxes</div>
+              <div style="font-size:12px;color:var(--text);font-weight:600;">₹${Number(r.base_price).toLocaleString('en-IN', {maximumFractionDigits:2})}<span style="font-size:9px;color:var(--text-muted)">/unit (without GST)</span></div>
+              <div style="font-size:9px;color:var(--text-muted);font-weight:600;">Exclusive of all taxes</div>
+            </div>
           </div>
-        </div>`).join('');
+        </div>`;
+      }).join('');
     }
 
     // Setup Stock Status Warning and limits
@@ -428,12 +438,6 @@ async function loadProductDetail() {
       }
       
       const taxMultiplier = 1 + (parseFloat(p.gst_percent) || 18) / 100;
-
-      const unitDisplay = document.getElementById('unitPriceDisplay');
-      if (unitDisplay) {
-        const inclusiveBaseUnitPrice = baseUnitPrice * taxMultiplier;
-        unitDisplay.textContent = `(₹${inclusiveBaseUnitPrice.toFixed(2)} / ${p.unit_type || 'unit'})`;
-      }
       
       let modifiers = 0;
       let isCustomSize = false;
@@ -454,7 +458,6 @@ async function loadProductDetail() {
       if (isCustomSize && customW && customH) {
         const w = parseFloat(customW.value) || 1;
         const h = parseFloat(customH.value) || 1;
-        // Basic area calc (w * h / 100) as an example multiplier
         areaMultiplier = (w * h) / 100;
         if (areaMultiplier < 1) areaMultiplier = 1;
       }
@@ -463,7 +466,43 @@ async function loadProductDetail() {
       window.currentCalculatedPrice = finalUnitPrice;
       
       const finalInclusiveUnitPrice = finalUnitPrice * taxMultiplier;
-      document.getElementById('productPrice').textContent = `₹${finalInclusiveUnitPrice.toLocaleString('en-IN', {maximumFractionDigits:2})}`;
+
+      const detailNeedGSTBill = document.getElementById('detailNeedGSTBill');
+      const needGst = detailNeedGSTBill ? detailNeedGSTBill.checked : true;
+      if (detailNeedGSTBill) {
+        localStorage.setItem('need_gst_bill', needGst ? 'true' : 'false');
+      }
+
+      const displayUnitPrice = needGst ? finalInclusiveUnitPrice : finalUnitPrice;
+
+      document.getElementById('productPrice').textContent = `₹${displayUnitPrice.toLocaleString('en-IN', {maximumFractionDigits:2})}`;
+
+      const unitDisplay = document.getElementById('unitPriceDisplay');
+      if (unitDisplay) {
+        unitDisplay.textContent = `(₹${displayUnitPrice.toFixed(2)} / ${p.unit_type || 'unit'})`;
+      }
+
+      const incTaxesLine = document.getElementById('inclusiveTaxesLine');
+      const withoutGstContainer = document.getElementById('productPriceWithoutGstContainer');
+      const withoutGstEl = document.getElementById('productPriceWithoutGst');
+      const exclTaxesLine = document.getElementById('exclusiveTaxesLine');
+
+      if (needGst) {
+        if (incTaxesLine) {
+          incTaxesLine.style.display = 'block';
+          incTaxesLine.textContent = 'Inclusive of all taxes';
+        }
+        if (withoutGstContainer) withoutGstContainer.style.display = 'flex';
+        if (withoutGstEl) withoutGstEl.textContent = `₹${finalUnitPrice.toLocaleString('en-IN', {maximumFractionDigits:2})}`;
+        if (exclTaxesLine) exclTaxesLine.style.display = 'block';
+      } else {
+        if (incTaxesLine) {
+          incTaxesLine.style.display = 'block';
+          incTaxesLine.textContent = 'Exclusive of all taxes';
+        }
+        if (withoutGstContainer) withoutGstContainer.style.display = 'none';
+        if (exclTaxesLine) exclTaxesLine.style.display = 'none';
+      }
       
       const mrpEl = document.getElementById('productMrp');
       const savEl = document.getElementById('productSavings');
@@ -473,12 +512,14 @@ async function loadProductDetail() {
       if (mrpVal && mrpVal > p.base_price) {
         const mrpAdjusted = (mrpVal + modifiers) * areaMultiplier;
         const mrpAdjustedInclusive = mrpAdjusted * taxMultiplier;
-        const discountAmt = mrpAdjustedInclusive - finalInclusiveUnitPrice;
-        const discountPct = Math.round((discountAmt / mrpAdjustedInclusive) * 100);
+        
+        const displayMrp = needGst ? mrpAdjustedInclusive : mrpAdjusted;
+        const discountAmt = displayMrp - displayUnitPrice;
+        const discountPct = Math.round((discountAmt / displayMrp) * 100);
         
         if (mrpEl) {
           mrpEl.style.display = 'block';
-          mrpEl.textContent = `M.R.P: ₹${mrpAdjustedInclusive.toLocaleString('en-IN', {maximumFractionDigits:2})}`;
+          mrpEl.textContent = `M.R.P: ₹${displayMrp.toLocaleString('en-IN', {maximumFractionDigits:2})}`;
         }
         if (savEl) {
           savEl.style.display = 'block';
@@ -494,8 +535,8 @@ async function loadProductDetail() {
         if (badgeEl) badgeEl.style.display = 'none';
       }
       
-      const totalInclusive = (finalInclusiveUnitPrice * qty).toLocaleString('en-IN', { maximumFractionDigits: 2 });
-      document.getElementById('totalPriceDisplay').textContent = `Total: ₹${totalInclusive}`;
+      const totalDisplayPrice = displayUnitPrice * qty;
+      document.getElementById('totalPriceDisplay').textContent = `Total: ₹${totalDisplayPrice.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
     }
     
     qtyInput?.addEventListener('input', calculateTotal);
@@ -503,6 +544,15 @@ async function loadProductDetail() {
     customH?.addEventListener('input', calculateTotal);
     document.querySelectorAll('.dyn-option-select').forEach(el => el.addEventListener('change', calculateTotal));
     
+    const detailNeedGSTBill = document.getElementById('detailNeedGSTBill');
+    if (detailNeedGSTBill) {
+      const storedGSTPref = localStorage.getItem('need_gst_bill');
+      if (storedGSTPref !== null) {
+        detailNeedGSTBill.checked = storedGSTPref === 'true';
+      }
+      detailNeedGSTBill.addEventListener('change', calculateTotal);
+    }
+
     calculateTotal(); // initial calculation
   } catch (err) {
     console.error(err);
